@@ -1,3 +1,5 @@
 /**/*.pyc
 .project
 .classpath
+/bin/
+.cache-main
