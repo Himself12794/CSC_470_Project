@@ -6,4 +6,4 @@ Nathan Spindler,
 
 Philip Whiting
 
-Other information coming soon.
+This branch contains the scala-implementation of the code. It should not be mered into master or develop.
