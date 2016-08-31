@@ -5,9 +5,16 @@ import java.time.LocalDate
 
 object Main extends App {
   
-  val reserver = new PrepaidReservation(LocalDate.of(2016, 12, 25), 1, LocalDate.now, "Bob", 455.00F, days = 3)
+  val reserver: Reservation = new PrepaidReservation(LocalDate.of(2016, 12, 25), 2, LocalDate.now, "Bob", days = 3, id = 1L)
   
+  println(LocalDate.ofEpochDay(LocalDate.of(2016, 12, 25).toEpochDay))
   
-  println(reserver.getCost)
+  ReservationRegistry.getReservations foreach {println}
+  
+  ReservationRegistry.saveReservationToFile(reserver)
+  
+  println(BaseCostRegistry.toXml)
+  
+  println(reserver.getBaseCostDue())
   
 }
