@@ -25,7 +25,7 @@ Tasks:
   b. Identify an architectural style and produce an architectural design for the system  
   c. Specify the functionality and interface for each of the subsystems and components in the architectural design  
 
-4. Derive use cases for the OOAD system - *  
+4. Derive use cases for the OOAD system - Javier  
   a. Derive use cases from the requirements you produced from #1 above  
   b. Construct a requirements-use case traceability matrix  
   c. Specify the high-level use cases  
