@@ -7,6 +7,12 @@ import org.springframework.data.annotation.Id;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 
+/**
+ * Object representing a reservation. To ensure consistent ids, only the CostRegistry will be allowed to create them.
+ * 
+ * @author phwhitin
+ *
+ */
 public abstract class Reservation {
 
 	@Id
@@ -21,7 +27,7 @@ public abstract class Reservation {
 	protected boolean hasPaid = false;
 	protected float totalCost;
 	
-	public Reservation(float costModifier, String customer, LocalDate registrationDate, LocalDate reservationDate, int days,
+	Reservation(float costModifier, String customer, LocalDate registrationDate, LocalDate reservationDate, int days,
 			boolean hasPaid, CostRegistry costs) {
 		this.costModifier = costModifier;
 		this.customer = customer;
