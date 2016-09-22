@@ -20,7 +20,7 @@ Tasks:
   d. Draw a UML class diagram as a domain model based on the last step results  
   e. Review the domain model class diagram produced above using the review checklist in Section 5.4.5. Produce a review report that answer the list of review questions  
 
-3. Perform architecture design for the OOAD system - *  
+3. Perform architecture design for the OOAD system - Nathaniel  
   a. Identifying the type of system and briefly justify the answer  
   b. Identify an architectural style and produce an architectural design for the system  
   c. Specify the functionality and interface for each of the subsystems and components in the architectural design  
