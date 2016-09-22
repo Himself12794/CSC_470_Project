@@ -32,7 +32,7 @@ public abstract class Reservation {
 		calculateCost(costs);
 	}
 	
-	public float calculateCost(CostRegistry costs) {
+	protected float calculateCost(CostRegistry costs) {
 		
 		float total = 0.0F; 
 		for (LocalDate start = getReservationDate(); start.isBefore(start.plusDays(getDays())); start = start.plusDays(1)) {
@@ -42,6 +42,27 @@ public abstract class Reservation {
 		setTotalCost(total);
 		
 		return total;
+	}
+	
+	public abstract float getChangeFeeModifier();
+	
+	/**
+	 * Gets the updated cost and returns the change in amount owed.
+	 * 
+	 * @param date
+	 * @param cost
+	 * @return
+	 */
+	public float updateCost(LocalDate date, CostRegistry cost) {
+		
+		float prevCost = totalCost, newCost;
+
+		setReservationDate(date);
+		newCost = calculateCost(cost);
+		
+		newCost *= getChangeFeeModifier();
+
+		return newCost > prevCost ? newCost - prevCost : 0.0F;
 	}
 	
 	public long getReservationId() {
