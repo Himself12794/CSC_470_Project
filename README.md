@@ -26,9 +26,9 @@ Tasks:
   c. Specify the functionality and interface for each of the subsystems and components in the architectural design  
 
 4. Derive use cases for the OOAD system - Javier  
-  a. <s>Derive use cases from the requirements you produced from #1 above  
-  b. <s>Construct a requirements-use case traceability matrix  
-  c. <s>Specify the high-level use cases  
-  d. <s>Draw use case diagrams  
+  a. Derive use cases from the requirements you produced from #1 above  
+  b. Construct a requirements-use case traceability matrix  
+  c. Specify the high-level use cases  
+  d. Draw use case diagrams  
 
 
