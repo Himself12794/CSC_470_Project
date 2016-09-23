@@ -7,7 +7,7 @@
 	</configSuffixes>
 	<enableImports><![CDATA[false]]></enableImports>
 	<configs>
-		<config>java:edu.uncfsu.softwaredesign.f16.r2.Application</config>
+		<config>java:edu.uncfsu.softwaredesign.f16.r2.app.Application</config>
 	</configs>
 	<autoconfigs>
 	</autoconfigs>

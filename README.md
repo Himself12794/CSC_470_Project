@@ -10,8 +10,8 @@ Tasks:
 
 1. Requirements Elicitation for the Ophelia’s Oasis in the Amlet Desert (OOAD) system - Philip  
   a. <s>Identify and formulate functional requirements</s>  
-  b. Identify and formulate non-functional requirements  
-  c. Provide weights and priorities of the requirements  
+  b. <s>Identify and formulate non-functional requirements</s>  
+  c. <s>Provide weights and priorities of the requirements</s>  
   
 2. Perform domain modeling for the OOAD system - Philip  
   a. <s>Produce a one-page description of the business operation. State practical and reasonable assumptions</s>  
