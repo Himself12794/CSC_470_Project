@@ -18,7 +18,7 @@ Tasks:
   b. <s>Perform the brainstorming steps using the description produced in last step</s>  
   c. <s>Perform the classification step from the last step results</s>  
   d. <s>Draw a UML class diagram as a domain model based on the last step results</s>  
-  e. <s>Review the domain model class diagram produced above using the review checklist in Section 5.4.5. Produce a review report that answer the list of review questions</s?  
+  e. <s>Review the domain model class diagram produced above using the review checklist in Section 5.4.5. Produce a review report that answer the list of review questions</s>  
 
 3. Perform architecture design for the OOAD system - Nathaniel  
   a. Identifying the type of system and briefly justify the answer  
