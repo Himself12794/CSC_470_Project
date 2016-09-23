@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
+import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 
 /**
  * Object representing a reservation. To ensure consistent ids, only the CostRegistry will be allowed to create them.
@@ -14,28 +15,42 @@ import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
  *
  */
 public abstract class Reservation {
-
+	
 	@Id
 	private ObjectId id;
 	
-	protected long reservationId;
-	protected float costModifier;
+	protected final long reservationId;
+	protected final float costModifier;
+	protected final boolean canChange;
 	protected String customer;
 	protected LocalDate registrationDate;
 	protected LocalDate reservationDate;
 	protected int days;
 	protected boolean hasPaid = false;
 	protected float totalCost;
+	protected CreditCard creditCard;
 	
-	Reservation(float costModifier, String customer, LocalDate registrationDate, LocalDate reservationDate, int days,
-			boolean hasPaid, CostRegistry costs) {
+	Reservation(long reservationId, float costModifier, String customer, LocalDate registrationDate, LocalDate reservationDate, int days,
+			boolean hasPaid, CostRegistry costs, boolean canChange) {
 		this.costModifier = costModifier;
+		this.reservationId = reservationId;
 		this.customer = customer;
 		this.registrationDate = registrationDate;
 		this.reservationDate = reservationDate;
 		this.days = days;
+		this.canChange = canChange;
 		
 		calculateCost(costs);
+	}
+	
+	public void markPaid() {
+		
+		if (creditCard == null) {
+			throw new IllegalStateException("No credit card is on record for this reservation.");
+		} else {
+			hasPaid = true;
+		}
+		
 	}
 	
 	protected float calculateCost(CostRegistry costs) {
@@ -53,7 +68,7 @@ public abstract class Reservation {
 	public abstract float getChangeFeeModifier();
 	
 	/**
-	 * Gets the updated cost and returns the change in amount owed.
+	 * Gets the updated cost and returns the change in amount owed. 
 	 * 
 	 * @param date
 	 * @param cost
@@ -75,23 +90,15 @@ public abstract class Reservation {
 		return reservationId;
 	}
 
-	public void setReservationId(long reservationId) {
-		this.reservationId = reservationId;
-	}
-
 	public float getCostModifier() {
 		return costModifier;
 	}
-
-	public void setCostModifier(float costModifier) {
-		this.costModifier = costModifier;
-	}
-
+	
 	public String getCustomer() {
 		return customer;
 	}
 
-	public void setCustomer(String customer) {
+	void setCustomer(String customer) {
 		this.customer = customer;
 	}
 
@@ -99,7 +106,7 @@ public abstract class Reservation {
 		return registrationDate;
 	}
 
-	public void setRegistrationDate(LocalDate registrationDate) {
+	void setRegistrationDate(LocalDate registrationDate) {
 		this.registrationDate = registrationDate;
 	}
 
@@ -107,7 +114,7 @@ public abstract class Reservation {
 		return reservationDate;
 	}
 
-	public void setReservationDate(LocalDate reservationDate) {
+	void setReservationDate(LocalDate reservationDate) {
 		this.reservationDate = reservationDate;
 	}
 
@@ -115,7 +122,7 @@ public abstract class Reservation {
 		return days;
 	}
 
-	public void setDays(int days) {
+	void setDays(int days) {
 		this.days = days;
 	}
 
@@ -123,7 +130,7 @@ public abstract class Reservation {
 		return hasPaid;
 	}
 
-	public void setHasPaid(boolean hasPaid) {
+	void setHasPaid(boolean hasPaid) {
 		this.hasPaid = hasPaid;
 	}
 
@@ -131,8 +138,12 @@ public abstract class Reservation {
 		return totalCost;
 	}
 
-	public void setTotalCost(float totalCost) {
+	void setTotalCost(float totalCost) {
 		this.totalCost = totalCost;
+	}
+	
+	public boolean getCanChange() {
+		return canChange;
 	}
 	
 }

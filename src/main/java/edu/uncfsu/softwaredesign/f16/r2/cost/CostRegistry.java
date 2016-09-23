@@ -7,8 +7,16 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 
+import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
+
+/**
+ * Keeps track of room costs past, present, and future. 
+ * 
+ * @author phwhitin
+ *
+ */
 @Service
-public class CostRegistry {
+public abstract class CostRegistry implements Reportable {
 	
 	private static final float DEFAULT_COST = 200.0F;
 	
