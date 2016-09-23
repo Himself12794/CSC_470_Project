@@ -17,8 +17,8 @@ Tasks:
   a. <s>Produce a one-page description of the business operation. State practical and reasonable assumptions</s>  
   b. <s>Perform the brainstorming steps using the description produced in last step</s>  
   c. <s>Perform the classification step from the last step results</s>  
-  d. Draw a UML class diagram as a domain model based on the last step results  
-  e. Review the domain model class diagram produced above using the review checklist in Section 5.4.5. Produce a review report that answer the list of review questions  
+  d. <s>Draw a UML class diagram as a domain model based on the last step results</s>  
+  e. <s>Review the domain model class diagram produced above using the review checklist in Section 5.4.5. Produce a review report that answer the list of review questions</s?  
 
 3. Perform architecture design for the OOAD system - Nathaniel  
   a. Identifying the type of system and briefly justify the answer  
@@ -26,9 +26,9 @@ Tasks:
   c. Specify the functionality and interface for each of the subsystems and components in the architectural design  
 
 4. Derive use cases for the OOAD system - Javier  
-  a. Derive use cases from the requirements you produced from #1 above  
-  b. Construct a requirements-use case traceability matrix  
-  c. Specify the high-level use cases  
-  d. Draw use case diagrams  
+  a. <s>Derive use cases from the requirements you produced from #1 above</s>  
+  b. <s>Construct a requirements-use case traceability matrix</s>  
+  c. <s>Specify the high-level use cases</s>  
+  d. <s>Draw use case diagrams</s>  
 
 
