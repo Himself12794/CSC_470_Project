@@ -37,10 +37,12 @@ Tasks 2:
 2. Perform actor-system interaction modeling (20%)
 
   a. Write expanded use cases for the system*
+  
   b. Develop a prototype for each subsystem – Take screenshots in the submitted documents* and demonstrate in class
 3. Perform object interaction modeling (25%)
 
   a. Construct two scenarios and their scenario tables*
+  
   b. Produce design sequence diagrams for the nontrivial steps of the expanded use cases produced earlier*
 4. Derive a design class diagram from the design sequence diagrams produced earlier* (20%)
 5. Perform user interface design (25%)
