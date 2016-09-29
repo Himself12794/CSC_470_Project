@@ -41,5 +41,5 @@ Tasks 2:
   a. Construct two scenarios and their scenario tables* <br> 
   b. Produce design sequence diagrams for the nontrivial steps of the expanded use cases produced earlier*
 4. Derive a design class diagram from the design sequence diagrams produced earlier* (20%)
-5. Perform user interface design (25%)
+5. Perform user interface design (25%)<br>
   a. For each of the use cases, produce a user interface design*
