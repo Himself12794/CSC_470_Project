@@ -1,11 +1,12 @@
 package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -19,9 +20,9 @@ import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
  * @author phwhitin
  *
  */
-@Service
-public abstract class ReservationRegistry implements Reportable {
-
+@Repository
+public class ReservationRegistry implements Reportable {
+	
 	private final Map<Long, Reservation> reservations = Maps.newHashMap();
 	
 	/**
@@ -39,7 +40,9 @@ public abstract class ReservationRegistry implements Reportable {
 	 * 
 	 * @return
 	 */
-	public abstract Reservation registerNewReservation(String name, LocalDate reservationDate, LocalDate registrationDate, int days, byte type);
+	public Reservation registerNewReservation(String name, LocalDate reservationDate, LocalDate registrationDate, int days, byte type) {
+		return null;
+	}
 	
 	private void addReservationToRegistry(Reservation reserve) {
 		reservations.put(reserve.getReservationId(), reserve);
@@ -47,5 +50,17 @@ public abstract class ReservationRegistry implements Reportable {
 	
 	public List<Reservation> getReservations() {
 		return Lists.newArrayList(reservations.values());
+	}
+
+	@Override
+	public void writeReport(OutputStream out) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getReport() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
