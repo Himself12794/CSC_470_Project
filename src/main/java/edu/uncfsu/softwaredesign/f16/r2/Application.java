@@ -6,18 +6,24 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,6 +44,7 @@ public class Application extends JFrame {
 	private static final GridBagConstraints GBC = new GridBagConstraints();
 	private static final String BUTTONS = "Buttons";
 	private static final String VIEW_RESERVATIONS = "View";
+	private static final String INDEX = "Index";
 	
 	static {
 		GBC.weightx = GBC.weighty = 1.0;
@@ -54,6 +61,7 @@ public class Application extends JFrame {
 	private final JMenuItem makeReservation = new JMenuItem("Make Reservation");
 	private final JMenuItem viewReservation = new JMenuItem("View Reservations");
 	private final JMenu fileMenu			= new JMenu("File");
+	private final JMenuItem indexOption		= new JMenuItem("Index");
 	private final JMenuItem closeOption		= new JMenuItem("Close");
 
 	// Main content
@@ -64,6 +72,7 @@ public class Application extends JFrame {
 	private final JButton employeeButton	= new JButton("Login as Employee");
 	private final JTable reservationTable	= new JTable();
 	private final JScrollPane tablePane		= new JScrollPane(reservationTable);
+	private final JLabel indexPane			= new JLabel();
 	
 	// This holds all label reservation items for view reservations
 	private final List<Reservation> rerserv = Lists.newArrayList();
@@ -91,6 +100,8 @@ public class Application extends JFrame {
 		setJMenuBar(menuBar);
 		
 		menuBar.add(fileMenu);
+		fileMenu.add(indexOption);
+		indexOption.addActionListener(this::onIndexClick);
 		fileMenu.add(closeOption);
 		closeOption.addActionListener(l -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
 		
@@ -106,18 +117,18 @@ public class Application extends JFrame {
 	private void buildLayout() {
 		
 		add(mainContent);
-		mainContent.add(buttonContent, BUTTONS);
 		
+		mainContent.add(buttonContent, BUTTONS);
 		buttonContent.add(managerButton);
 		managerButton.addActionListener(l -> {
 			isManager = true;
-			switchViews();
+			onIndexClick(null);
 		});
 		
 		buttonContent.add(employeeButton);
 		employeeButton.addActionListener(l -> {
 			isManager = false;
-			switchViews();
+			onIndexClick(null);
 		});
 		
 
@@ -131,10 +142,10 @@ public class Application extends JFrame {
 		});
 		
 		reservationTable.getTableHeader().setReorderingAllowed(false);
-	}
-	
-	public void switchViews() {
-		onViewReservationClick(null);
+		
+		buildIndex();
+		mainContent.add(indexPane, INDEX);
+		indexPane.setVerticalAlignment(SwingConstants.TOP);
 	}
 	
 	public void buildTable() {
@@ -154,6 +165,21 @@ public class Application extends JFrame {
 		//		LocalDate.now().plusWeeks(4), new Integer(2), String.format("$%.2f", 1000.45F), new Boolean(true)};
 		
 		table.setDataVector(tableData, TABLE_LABELS);
+	}
+	
+	public void buildIndex() {
+		InputStream in = getClass().getClassLoader().getResourceAsStream("index.html");
+		StringWriter writer = new StringWriter();
+		try {
+			IOUtils.copy(in, writer);
+			indexPane.setText(writer.toString());
+		} catch (IOException e) {
+		}
+	}
+
+	
+	public void onIndexClick(ActionEvent e) {
+		((CardLayout)mainContent.getLayout()).show(mainContent, INDEX);
 	}
 	
 	public void onMakeReservationClick(ActionEvent e) {
