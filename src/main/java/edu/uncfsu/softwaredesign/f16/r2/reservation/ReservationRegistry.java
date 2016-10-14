@@ -1,11 +1,13 @@
 package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
@@ -41,5 +43,9 @@ public abstract class ReservationRegistry implements Reportable {
 	
 	private void addReservationToRegistry(Reservation reserve) {
 		reservations.put(reserve.getReservationId(), reserve);
+	}
+	
+	public List<Reservation> getReservations() {
+		return Lists.newArrayList(reservations.values());
 	}
 }

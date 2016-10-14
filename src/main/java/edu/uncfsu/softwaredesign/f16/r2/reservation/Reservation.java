@@ -2,9 +2,6 @@ package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
 import java.time.LocalDate;
 
-import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
-
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 
@@ -16,8 +13,8 @@ import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
  */
 public abstract class Reservation {
 	
-	@Id
-	private ObjectId id;
+	//@Id
+	//private ObjectId id;
 	
 	protected final long reservationId;
 	protected final float costModifier;
