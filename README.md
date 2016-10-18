@@ -33,8 +33,8 @@ Tasks:
 
 Tasks 2:
 
-1. Iterate the steps in Submission 1 and refine them - Nate
-2. Perform actor-system interaction modeling (20%) - Nate<br>
+1. Iterate the steps in Submission 1 and refine them - Nathaniel
+2. Perform actor-system interaction modeling (20%) - Nathaniel<br>
   a. Write expanded use cases for the system*<br>
   b. Develop a prototype for each subsystem – Take screenshots in the submitted documents* and demonstrate in class
 3. Perform object interaction modeling (25%) - Javier<br>
