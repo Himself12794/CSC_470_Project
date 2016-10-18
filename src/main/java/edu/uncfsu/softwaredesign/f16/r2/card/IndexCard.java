@@ -17,9 +17,10 @@ import org.springframework.stereotype.Component;
 import edu.uncfsu.softwaredesign.f16.r2.Application;
 
 @Component
-public class IndexCard implements IApplicationCard {
+public class IndexCard extends JLabel implements IApplicationCard {
 
-	private final JLabel indexPane = new JLabel();
+	private static final long serialVersionUID = 8747253147759007310L;
+	
 	private final JPanel buttonContent		= new JPanel(new FlowLayout(FlowLayout.CENTER));
 	private final JButton managerButton		= new JButton("Login as Management");
 	private final JButton employeeButton	= new JButton("Login as Employee");
@@ -35,7 +36,7 @@ public class IndexCard implements IApplicationCard {
 
 	@Override
 	public Container getComponent() {
-		return indexPane;
+		return this;
 	}
 
 	@Override
@@ -44,11 +45,11 @@ public class IndexCard implements IApplicationCard {
 		StringWriter writer = new StringWriter();
 		try {
 			IOUtils.copy(in, writer);
-			indexPane.setText(writer.toString());
+			setText(writer.toString());
 		} catch (IOException e) {
 		}
 
-		indexPane.setVerticalAlignment(SwingConstants.TOP);
+		setVerticalAlignment(SwingConstants.TOP);
 
 		/*mainContent.add(buttonContent, BUTTONS);
 		buttonContent.add(managerButton);

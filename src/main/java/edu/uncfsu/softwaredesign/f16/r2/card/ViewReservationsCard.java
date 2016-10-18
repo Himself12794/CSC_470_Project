@@ -11,12 +11,17 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import edu.uncfsu.softwaredesign.f16.r2.Application;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 
-public class ViewReservationsCard implements IApplicationCard {
+@Component
+public class ViewReservationsCard extends JPanel implements IApplicationCard {
 
+	private static final long serialVersionUID = 2369089937389802912L;
+	
 	private static final Object[] TABLE_LABELS 		= new Object[] {"Id", "Customer", "Reserve Date", "Registered Date", "Days", "Total Cost", "Has Paid"};
 	private static final GridBagConstraints GBC	 	= new GridBagConstraints();
 	
@@ -26,12 +31,16 @@ public class ViewReservationsCard implements IApplicationCard {
 		GBC.gridx = 0;
 	}
 	
-	private final JPanel viewContent		= new JPanel(new GridBagLayout());
 	private final JTable reservationTable	= new JTable();
 	private final JScrollPane tablePane		= new JScrollPane(reservationTable);
 	
 	@Autowired
 	private ReservationRegistry reservationRegistry;
+	
+	public ViewReservationsCard() {
+		super(new GridBagLayout());
+		Application.cardRegistry.registerCard(this);
+	}
 	
 	@Override
 	public String getName() {
@@ -40,7 +49,7 @@ public class ViewReservationsCard implements IApplicationCard {
 
 	@Override
 	public Container getComponent() {
-		return viewContent;
+		return this;
 	}
 
 	@SuppressWarnings("serial")
@@ -49,7 +58,7 @@ public class ViewReservationsCard implements IApplicationCard {
 
 		buildTable();
 		
-		viewContent.add(tablePane, GBC);
+		add(tablePane, GBC);
 		
 		reservationTable.setModel(new DefaultTableModel() {
 			public boolean isCellEditable(int row, int column) {
