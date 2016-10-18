@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -29,22 +30,26 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.context.annotation.Import;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
+import edu.uncfsu.softwaredesign.f16.r2.card.IApplicationCard;
+import edu.uncfsu.softwaredesign.f16.r2.card.RegistrationFormCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 
 @SpringBootApplication(exclude={MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 public class Application extends JFrame {
 
-	private static final long serialVersionUID = -3885000271483573087L;
-	private static final String APP_NAME = "Reservation Management System";
-	private static final Object[] TABLE_LABELS = new Object[] {"Id", "Customer", "Reserve Date", "Registered Date", "Days", "Total Cost", "Has Paid"};
-	private static final GridBagConstraints GBC = new GridBagConstraints();
-	private static final String BUTTONS = "Buttons";
-	private static final String VIEW_RESERVATIONS = "View";
-	private static final String INDEX = "Index";
+	private static final long serialVersionUID 		= -3885000271483573087L;
+	private static final String APP_NAME 			= "Reservation Management System";
+	private static final Object[] TABLE_LABELS 		= new Object[] {"Id", "Customer", "Reserve Date", "Registered Date", "Days", "Total Cost", "Has Paid"};
+	private static final GridBagConstraints GBC	 	= new GridBagConstraints();
+	private static final String BUTTONS 			= "Buttons";
+	private static final String VIEW_RESERVATIONS 	= "View";
+	private static final String INDEX 				= "Index";
 	
 	static {
 		GBC.weightx = GBC.weighty = 1.0;
@@ -54,6 +59,9 @@ public class Application extends JFrame {
 	
 	@Autowired
 	private ReservationRegistry reservationRegistry;
+	
+	@Autowired
+	private CardRegistry cardRegistry;
 	
 	// Menu items
 	private final JMenuBar menuBar			= new JMenuBar();
@@ -76,14 +84,16 @@ public class Application extends JFrame {
 	
 	// This holds all label reservation items for view reservations
 	private final List<Reservation> rerserv = Lists.newArrayList();
+	private final Map<String, Integer> menus = Maps.newHashMap();
+	private final Map<JMenu, List<IApplicationCard>> menuToCard = Maps.newHashMap();
 	
 	private boolean isManager = false;
 	
 	public Application() {
 
 		setTitle(APP_NAME);
-		buildMenu();
-		buildLayout();
+		//buildMenu();
+		//buildLayout();
 		setSize(800, 600);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -95,26 +105,75 @@ public class Application extends JFrame {
 	/**
 	 * Builds the menu. Called on startup.
 	 */
-	private void buildMenu() {
+	void buildMenu() {
 		
 		setJMenuBar(menuBar);
 		
-		menuBar.add(fileMenu);
-		fileMenu.add(indexOption);
-		indexOption.addActionListener(this::onIndexClick);
-		fileMenu.add(closeOption);
-		closeOption.addActionListener(l -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
+		menuBar.add(fileMenu)
+			.add(indexOption)
+				.addActionListener(this::onIndexClick);
 		
-		menuBar.add(reservationMenu);
-		reservationMenu.add(makeReservation);
-		makeReservation.addActionListener(this::onMakeReservationClick);
-		reservationMenu.add(viewReservation);
-		viewReservation.addActionListener(this::onViewReservationClick);
+			fileMenu.add(closeOption)
+				.addActionListener(l -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
+		
+		menuBar.add(reservationMenu)
+			.add(makeReservation)
+				.addActionListener(this::onMakeReservationClick);
+		
+			reservationMenu.add(viewReservation)
+				.addActionListener(this::onViewReservationClick);
+		
+	}
+	
+	void bMs() {
+
+		setJMenuBar(menuBar);
+		
+		cardRegistry.getAllCards().forEach(card -> {
+			
+			int ix = menus.compute(card.getMenuName(), (k,v) -> {
+			
+				int i = v == null ? menuBar.getMenuCount() : v;
+				
+				if (v == null) {
+					menus.put(card.getMenuName(), i);
+					menuBar.add(new JMenu(card.getMenuName()));
+				} 
+				
+				return i;
+			});
+				
+			JMenu menu = menuBar.getMenu(ix);
+			
+			menu.add(card.getMenuOptionName()).addActionListener(action -> {
+				card.reload();
+				((CardLayout)mainContent.getLayout()).show(mainContent, card.getName());
+			});
+			
+			menuToCard.putIfAbsent(menu, Lists.newArrayList());
+			menuToCard.get(menu).add(card);
+			
+		});
+		
+		menuToCard.forEach((k,v) ->{
+			k.addActionListener(action -> v.forEach(IApplicationCard::reload));
+		});
+		
+		menuBar.getMenu(menus.get("File")).add(closeOption)
+			.addActionListener(l -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));;
+		
+	}
+	
+	void bLs() {
+		
+		add(mainContent);
+		
+		cardRegistry.getAllCards().forEach(card -> add(card.getComponent(), card.getName()));
 		
 	}
 	
 	@SuppressWarnings("serial")
-	private void buildLayout() {
+	void buildLayout() {
 		
 		add(mainContent);
 		
@@ -140,12 +199,12 @@ public class Application extends JFrame {
 				return false;
 			}
 		});
-		
 		reservationTable.getTableHeader().setReorderingAllowed(false);
 		
 		buildIndex();
 		mainContent.add(indexPane, INDEX);
 		indexPane.setVerticalAlignment(SwingConstants.TOP);
+		
 	}
 	
 	public void buildTable() {
@@ -154,15 +213,12 @@ public class Application extends JFrame {
 		
 		List<Reservation> reservations = reservationRegistry.getReservations();
 		Object[][] tableData = new Object[reservations.size()][7];
-		//Object[][] tableData = new Object[1][7];
 		
 		for (int i = 0; i < reservations.size(); i++) {
 			Reservation res = reservations.get(i);  
 			tableData[i] = new Object[]{ new Long(res.getReservationId()), res.getCustomer(), res.getReservationDate(),
 					res.getRegistrationDate(), new Integer(res.getDays()), String.format("%.2f", res.getTotalCost()), new Boolean(res.isHasPaid())};
 		}
-		//tableData[0] = new Object[]{ new Long(1L), "John Doe", LocalDate.now(),
-		//		LocalDate.now().plusWeeks(4), new Integer(2), String.format("$%.2f", 1000.45F), new Boolean(true)};
 		
 		table.setDataVector(tableData, TABLE_LABELS);
 	}
@@ -177,22 +233,31 @@ public class Application extends JFrame {
 		}
 	}
 
+	void loadRegisteredComponents() {
+		
+	}
+	
+	public JPanel getMainContent() {
+		return mainContent;
+	}
 	
 	public void onIndexClick(ActionEvent e) {
 		((CardLayout)mainContent.getLayout()).show(mainContent, INDEX);
 	}
 	
 	public void onMakeReservationClick(ActionEvent e) {
-		System.out.println("The make reservation button was clicked");
+		((CardLayout)mainContent.getLayout()).show(mainContent, RegistrationFormCard.TITLE);
 	}
 	
 	public void onViewReservationClick(ActionEvent e) {
-		System.out.println("The view reservation button was clicked");
 		buildTable();
 		((CardLayout)mainContent.getLayout()).show(mainContent, VIEW_RESERVATIONS);
 	}
 	
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		Application app = SpringApplication.run(Application.class, args).getBean(Application.class);
+		
+		app.bLs();
+		app.bMs();
 	}
 }
