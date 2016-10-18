@@ -6,7 +6,7 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import edu.uncfsu.softwaredesign.f16.r2.card.IApplicationCard;
+import edu.uncfsu.softwaredesign.f16.r2.components.IApplicationCard;
 
 /**
  * Required for finer control. Although a card may be loaded by Spring, this does not mean

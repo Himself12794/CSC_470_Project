@@ -9,7 +9,11 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,13 +22,16 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 
-import edu.uncfsu.softwaredesign.f16.r2.card.IApplicationCard;
+import edu.uncfsu.softwaredesign.f16.r2.components.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 
 @SpringBootApplication(exclude={MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 public class Application extends JFrame {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(Application.class.getSimpleName());
+	
 	private static final long serialVersionUID 		= -3885000271483573087L;
 	private static final String APP_NAME 			= "Reservation Management System";
 	private static final String BUTTONS 			= "Buttons";
@@ -46,6 +53,12 @@ public class Application extends JFrame {
 	
 	public Application() {
 
+		try { 
+			UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
+		} catch (Exception e) {
+			LOGGER.error("Could not load separate theme", e);
+			LOGGER.error("Using default");
+		}
 		setTitle(APP_NAME);
 		setSize(800, 600);
 		setLocationRelativeTo(null);
@@ -115,18 +128,23 @@ public class Application extends JFrame {
 		
 		if (doLoad) {
 			((CardLayout)mainContent.getLayout()).show(mainContent, card.getName());
+			
+			card.reload();
 			currentCard = card;
 		}
 	}
 	
 	public static void main(String[] args) {
-		Application app = SpringApplication.run(Application.class, args).getBean(Application.class);
-
-		// We have to do this after the context has been loaded to ensure all components have registered themselves
-		app.buildComponentCards();
-		app.buildLayouts();
-		app.buildMenus();
-		app.setCurrentCard(INDEX);
-		app.setVisible(true);
+		
+		SwingUtilities.invokeLater(() -> {
+			Application app = SpringApplication.run(Application.class, args).getBean(Application.class);
+	
+			// We have to do this after the context has been loaded to ensure all components have registered themselves
+			app.buildComponentCards();
+			app.buildLayouts();
+			app.buildMenus();
+			app.setCurrentCard(INDEX);
+			app.setVisible(true);
+		});
 	}
 }

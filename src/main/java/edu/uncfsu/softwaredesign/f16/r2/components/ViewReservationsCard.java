@@ -1,4 +1,4 @@
-package edu.uncfsu.softwaredesign.f16.r2.card;
+package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import java.awt.Container;
 import java.awt.GridBagConstraints;
