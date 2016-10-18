@@ -32,4 +32,8 @@ public class CardRegistry {
 		return Lists.newArrayList(cardRegistry.values());
 	}
 	
+	public IApplicationCard getCard(String name) {
+		return cardRegistry.get(name);
+	}
+	
 }

@@ -6,17 +6,16 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-import edu.uncfsu.softwaredesign.f16.r2.CardRegistry;
+import edu.uncfsu.softwaredesign.f16.r2.Application;
 
 @Component
-public class RegistrationFormCard implements IApplicationCard {
+public class ReservationFormCard implements IApplicationCard {
 
 	private static final long serialVersionUID = 5652047994860330697L;
 	public static final String TITLE 				= "RegistrationFormPage";
@@ -26,12 +25,8 @@ public class RegistrationFormCard implements IApplicationCard {
 	private static final SpinnerModel spinnerModel 	= new SpinnerNumberModel(1, 1, 7, 1);
 	private static final JSpinner daysOptions		= new JSpinner(spinnerModel);
 	
-	@Autowired
-	private CardRegistry cardRegistry;
-	
-	public RegistrationFormCard() {
-		System.out.println(cardRegistry);
-		cardRegistry.registerCard(this);
+	public ReservationFormCard() {
+		Application.cardRegistry.registerCard(this);
 	}
 	
 	public JPanel getComponent() {
@@ -78,22 +73,16 @@ public class RegistrationFormCard implements IApplicationCard {
 
 	@Override
 	public String getMenuName() {
-		return "Registration";
+		return "Reservation";
 	}
 
 	@Override
 	public String getMenuOptionName() {
-		return "Create Registration";
-	}
-
-	@Override
-	public boolean canBeSelected() {
-		return true;
+		return "Create Reservation";
 	}
 
 	@Override
 	public void reload() {
-		
 	}
 	
 }

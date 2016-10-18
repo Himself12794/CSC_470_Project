@@ -42,11 +42,23 @@ public interface IApplicationCard {
 	 * 
 	 * @return
 	 */
-	boolean canBeSelected();
+	default boolean canBeSelected() {
+		return true;
+	}
 	
 	/**
 	 * Called every time this card is open.
 	 * 
 	 */
 	void reload();
+	
+	/**
+	 * Whether or not we should navigate form this card.
+	 * 
+	 * @param target
+	 * @return
+	 */
+	default boolean onNavigateAway(IApplicationCard target) {
+		return true;
+	}
 }
