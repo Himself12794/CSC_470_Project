@@ -1,6 +1,5 @@
 package edu.uncfsu.softwaredesign.f16.r2.components;
 
-import java.awt.Container;
 import java.awt.FlowLayout;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,10 +13,8 @@ import javax.swing.SwingConstants;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
-import edu.uncfsu.softwaredesign.f16.r2.Application;
-
 @Component
-public class IndexCard extends JPanel implements IApplicationCard {
+public class IndexCard extends AbstractCard implements IApplicationCard {
 
 	private static final long serialVersionUID = 8747253147759007310L;
 	
@@ -28,17 +25,7 @@ public class IndexCard extends JPanel implements IApplicationCard {
 	private final JButton employeeButton	= new JButton("Login as Employee");
 	
 	public IndexCard() {
-		Application.cardRegistry.registerCard(this);
-	}
-	
-	@Override
-	public String getName() {
-		return "Index";
-	}
-
-	@Override
-	public Container getComponent() {
-		return this;
+		super("Index");
 	}
 
 	@Override
@@ -75,7 +62,7 @@ public class IndexCard extends JPanel implements IApplicationCard {
 	}
 
 	@Override
-	public String getMenuOptionName() {
+	public String getMenuItemName() {
 		return "Index";
 	}
 

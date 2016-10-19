@@ -143,4 +143,11 @@ public abstract class Reservation {
 		return canChange;
 	}
 	
+
+	public static final String[] types = new String[]{"Pre-paid", "60 Days Advanced", "Incentive", "Conventional"};
+	
+	public static boolean typeRequiresPayment(Object type) {
+		return type.equals(types[0]) || type.equals(types[1]);
+	}
+	
 }

@@ -2,6 +2,9 @@ package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import java.awt.Container;
 
+import edu.uncfsu.softwaredesign.f16.r2.Application;
+import edu.uncfsu.softwaredesign.f16.r2.util.MenuBuilder;
+
 public interface IApplicationCard {
 	
 	/**
@@ -19,7 +22,8 @@ public interface IApplicationCard {
 	Container getComponent();
 	
 	/**
-	 * This will be called before {@link IApplicationCard#getComponent()}
+	 * This will be called before {@link IApplicationCard#getComponent()}, and it
+	 * will only be called once.
 	 */
 	void buildComponent();
 	
@@ -35,19 +39,21 @@ public interface IApplicationCard {
 	 * 
 	 * @return
 	 */
-	String getMenuOptionName();
+	String getMenuItemName();
 	
 	/**
 	 * Determines whether or not this card can currently be selected.
 	 * 
 	 * @return
 	 */
-	default boolean canBeSelected() {
-		return true;
+	boolean canBeSelected();
+	
+	default void buildMenu(MenuBuilder builder, Application app){
+		builder.addMenu(getMenuName()).addMenuItem(getMenuItemName()).addItemAction(l -> app.setCurrentCard(getName()));
 	}
 	
 	/**
-	 * Called every time this card is open.
+	 * Called every time this card is opened.
 	 * 
 	 */
 	void reload();
@@ -58,7 +64,5 @@ public interface IApplicationCard {
 	 * @param target
 	 * @return
 	 */
-	default boolean onNavigateAway(IApplicationCard target) {
-		return true;
-	}
+	boolean onNavigateAway(IApplicationCard target);
 }

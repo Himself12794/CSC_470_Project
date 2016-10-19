@@ -1,20 +1,21 @@
-package edu.uncfsu.softwaredesign.f16.r2;
+package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+
+import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import edu.uncfsu.softwaredesign.f16.r2.components.IApplicationCard;
-
 /**
- * Required for finer control. Although a card may be loaded by Spring, this does not mean
- * it is usable.
+ * Contains all cards. Cards self-register, if loaded as a component
  * 
  * @author phwhitin
  *
  */
+@Repository
 public class CardRegistry {
 
 	private final Map<String, IApplicationCard> cardRegistry = Maps.newHashMap();
@@ -36,4 +37,12 @@ public class CardRegistry {
 		return cardRegistry.get(name);
 	}
 	
+	/**
+	 * For convenience
+	 * 
+	 * @param action
+	 */
+	public void forEach(Consumer<? super IApplicationCard> action) {
+		getAllCards().forEach(action);
+	}
 }
