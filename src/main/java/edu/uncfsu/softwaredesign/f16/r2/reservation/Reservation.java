@@ -13,6 +13,52 @@ import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
  */
 public abstract class Reservation {
 	
+	public static enum Type {
+		
+		PRE_PAID("Pre-paid", 90),
+		DAYS_ADVANCED_60("60 Days Advanced", false, 60),
+		INCENTIVE("Incentive"),
+		CONVENTIONAL("Conventional");
+		
+		public final String typeName;
+		public final boolean isPrepaid;
+		public final int minimumDays;
+		
+		Type(String name) {
+			this(name, true);
+		}
+		
+		Type(String name, boolean isPrepaid) {
+			this(name, isPrepaid, 1);
+		}
+		
+		Type(String name, int minimumDays) {
+			this(name, true, minimumDays);
+		}
+		
+		Type(String name, boolean isPrepaid, int minimumDays) {
+			this.typeName = name;
+			this.isPrepaid = isPrepaid;
+			this.minimumDays = minimumDays;
+		}
+		
+		public String[] getNames() {
+			String[] names = new String[values().length];
+			
+			int i = 0;
+			for (Type type :  values()) {
+				names[i] = type.name();
+			}
+			
+			return names;
+		}
+		
+		public String toString() {
+			return typeName;
+		}
+		
+	}
+	
 	//@Id
 	//private ObjectId id;
 	
@@ -143,11 +189,5 @@ public abstract class Reservation {
 		return canChange;
 	}
 	
-
-	public static final String[] types = new String[]{"Pre-paid", "60 Days Advanced", "Incentive", "Conventional"};
-	
-	public static boolean typeRequiresPayment(Object type) {
-		return type.equals(types[0]) || type.equals(types[1]);
-	}
 	
 }
