@@ -1,7 +1,6 @@
 package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -16,13 +15,14 @@ import org.springframework.stereotype.Repository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
-import com.google.common.math.DoubleMath;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.util.InvalidReservationException;
 import edu.uncfsu.softwaredesign.f16.r2.util.NoSuchReservationTypeException;
+import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
+import edu.uncfsu.softwaredesign.f16.r2.util.ReservationRegistryFullException;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 
 /**
@@ -54,19 +54,6 @@ public class ReservationRegistry implements Reportable {
 		return Optional.ofNullable(reservations.get(id));
 	}
 	
-	/**
-	 * Creates a new reservation and returns it.
-	 * 
-	 * @return
-	 */
-	public Reservation registerNewReservation(String name, LocalDate reservationDate, LocalDate registrationDate, int days, byte type) {
-		return null;
-	}
-	
-	private void addReservationToRegistry(Reservation reserve) {
-		reservations.put(reserve.getReservationId(), reserve);
-	}
-	
 	public List<Reservation> getReservations() {
 		return Lists.newArrayList(reservations.values());
 	}
@@ -82,24 +69,48 @@ public class ReservationRegistry implements Reportable {
 	}
 	
 	private long getNextFreeId() {
-		return reservations.keySet().stream().max(Long::compare).orElse(1L);
+		return reservations.keySet().stream().max(Long::compare).orElse(0L) + 1;
 	}
 	
-	public void registerReservation(Reservation reserve) {
-		if (reserve.getReservationId() == -1) {
-			
-			long id = getNextFreeId();
-					
-			try {
-				Field field = Reservation.class.getField("reservationId");
-				field.setAccessible(true);
-				field.set(reserve, id);
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-				LOGGER.error("An unexpected error has occured", e);
-			}
+	/**
+	 * Adds a reservation to the registry only if it does not already exist
+	 * 
+	 * @param reserve
+	 * @throws ReservationRegistryFullException if the registry is full
+	 */
+	public void registerReservation(Reservation reserve) throws ReservationRegistryFullException {
+		
+		Optional<List<LocalDate>> dates = getConflicts(reserve);
+		
+		if (dates.isPresent()) {
+			throw new ReservationRegistryFullException(reserve, dates.get());
 		}
 		
+		if (reserve.getReservationId() == -1 || reservations.containsKey(reserve.reservationId)) {
+			reserve.reservationId = getNextFreeId();
+		} 
+
 		reservations.put(reserve.getReservationId(), reserve);
+		
+		LOGGER.info("Registered reservation with id {}", reserve.reservationId);
+	}
+	
+	/**
+	 * Checks if the reservation can be inserted into the registry.
+	 * 
+	 * @param reserve
+	 * @return a list of the full days, or None if no conflicts
+	 * 
+	 */
+	public Optional<List<LocalDate>> getConflicts(Reservation reserve) {
+		
+		List<LocalDate> conflicts = Lists.newArrayList();
+		
+		Utils.dateStream(reserve)
+			.filter(d -> getReservationsForDate(d).size() >= MAX_ROOMS)
+			.forEach(conflicts::add);
+
+		return Optional.ofNullable(conflicts.isEmpty() ? null : conflicts);
 	}
 	
 	public ReservationBuilder createReservationBuilder(ReservationType type) {
@@ -112,21 +123,19 @@ public class ReservationRegistry implements Reportable {
 	}
 	
 	public List<Reservation> getReservationsForDate(LocalDate date) {
-		
 		return reservations.values().stream().filter(r -> generateRangeForStay(r).contains(date)).collect(Collectors.toList());
-		
 	}
 	
 	public float averageOccupancyForRange(LocalDate startDate, int days) {
-		
-		List<Integer> dayCounts = Lists.newArrayList();
-		
-		for (LocalDate start = startDate; start.isBefore(startDate.plusDays(days+1)); start = start.plusDays(1)) {
-			dayCounts.add(getReservationsForDate(start).size());
-		}
-		return (float) DoubleMath.mean(dayCounts);
+		return (float)Utils.dateStream(startDate, days).mapToInt(d -> getReservationsForDate(d).size()).average().orElse(0.0);
 	}
 	
+	/**
+	 * Used to build a reservation
+	 * 
+	 * @author phwhitin
+	 *
+	 */
 	public class ReservationBuilder {
 		
 		private final ReservationType type;
@@ -208,8 +217,9 @@ public class ReservationRegistry implements Reportable {
 		 * 
 		 * @return
 		 * @throws InvalidReservationException
+		 * @throws ReservationRegistryFullException 
 		 */
-		public Reservation createAndRegister(boolean register) throws InvalidReservationException {
+		public Reservation createAndRegister(boolean register) throws ReservationException {
 			
 			errorCheck();
 			
@@ -218,27 +228,22 @@ public class ReservationRegistry implements Reportable {
 				@Override
 				float calculateCost(CostRegistry costs)  {
 					
-					float total = 0.0F; 
-					for (LocalDate start = getReservationDate(); start.isBefore(getReservationDate().plusDays(getDays()+1)); start = start.plusDays(1)) {
-						total += costs.getCostForDay(start) * getCostModifier();
-					}
+					float[] total = {0.0F}; 
+					Utils.dateStream(this).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
 					if (getReservationDate().isBefore(getRegistrationDate().plusDays(30))) {
 						if (averageOccupancyForRange(getRegistrationDate(), getDays()) / MAX_ROOMS <= 0.6F) {
-							total *= 0.8F;
+							total[0] *= 0.8F;
 						}
-						
 					}
 
-					LOGGER.info("This total has been gotten {}", total);
+					setTotalCost(total[0]);
 					
-					setTotalCost(total);
-					
-					return total;
+					return total[0];
 				}
 				
 			};
 			
-			if (register) reservations.put(reserve.getReservationId(), reserve);
+			if (register) registerReservation(reserve);
 			
 			invalid = true;
 			

@@ -16,6 +16,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
+import edu.uncfsu.softwaredesign.f16.r2.Application;
 import edu.uncfsu.softwaredesign.f16.r2.GenericWorker;
 import edu.uncfsu.softwaredesign.f16.r2.components.ImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.components.JTextFieldLimit;
@@ -37,7 +39,8 @@ import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry.ReservationBuilder;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationType;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
-import edu.uncfsu.softwaredesign.f16.r2.util.InvalidReservationException;
+import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
+import edu.uncfsu.softwaredesign.f16.r2.util.ReservationRegistryFullException;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 import net.miginfocom.swing.MigLayout;
 
@@ -72,6 +75,9 @@ public class ReservationFormCard extends AbstractCard {
 	@Autowired
 	private ReservationRegistry reservationRegistry;
 	
+	@Autowired
+	private Application theApp;
+	
 	public ReservationFormCard() {
 		super(TITLE);
 		//setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -83,7 +89,7 @@ public class ReservationFormCard extends AbstractCard {
 	public void buildSubComponents() {
 
 		dropDown.addActionListener(this::doTypeValidation);
-		submitButton.addActionListener(this::doSubmit);
+		submitButton.addActionListener(a -> new GenericWorker(this::doSubmit).execute());
 		submitButton.setToolTipText("Click to register reservation");
 		calculateButton.addActionListener(a -> new GenericWorker(this::doCalculate).execute());
 		cardSecurity.setDocument(new JTextFieldLimit(3));
@@ -198,8 +204,16 @@ public class ReservationFormCard extends AbstractCard {
 	 * Called when this form is submitted.
 	 * 
 	 */
-	public void doSubmit(ActionEvent e) {
-		
+	public synchronized void doSubmit() {
+		try {
+			reservationRegistry.registerReservation(builtReservation);
+			builtReservation = null;
+			submitButton.setEnabled(false);
+		} catch (ReservationRegistryFullException re) {
+			LOGGER.error("The registry is full for this reservation range");
+			LOGGER.trace("Trace", re);
+			showError(re);
+		} 
 	}
 	
 	/**
@@ -209,7 +223,7 @@ public class ReservationFormCard extends AbstractCard {
 	 */
 	public synchronized void doCalculate() {
 		
-		LOGGER.info("Calculating Reservation data");
+		LOGGER.info("Calculate button has been pressed");
 		
 		reservationBuilder = reservationRegistry.createReservationBuilder(ReservationType.values()[dropDown.getSelectedIndex()]);
 		
@@ -220,13 +234,16 @@ public class ReservationFormCard extends AbstractCard {
 			.setReservationDate(getReservationDate());
 		
 		try {
-			LOGGER.info("Creating reservation for review");
+			
 			builtReservation = reservationBuilder.createAndRegister(false);
-			LOGGER.info("Complete");
 			totalCost.setText(String.format("$%.2f", builtReservation.getTotalCost()));
 			submitButton.setEnabled(true);
-		} catch (InvalidReservationException e1) {
-			e1.printStackTrace();
+			
+		} catch (ReservationException e1) {
+			
+			LOGGER.error("An error occured in attempting to create a reservation");
+			LOGGER.trace("Trace", e1);
+			showError(e1);
 		}
 		
 	}
@@ -259,6 +276,15 @@ public class ReservationFormCard extends AbstractCard {
 	
 	public LocalDate getReservationDate() {
 		return dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	}
+	
+	public void showError(ReservationException except) {
+		if (except instanceof ReservationRegistryFullException) {
+			generateErrorMessage(WordUtils.wrap(except.getMessage(), 60), "Registry Full");
+		} else {
+			generateErrorMessage(except.getMessage(), except.getClass().getSimpleName());
+		}
+		
 	}
 	
 }

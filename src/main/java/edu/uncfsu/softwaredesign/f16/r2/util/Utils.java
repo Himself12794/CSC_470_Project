@@ -3,8 +3,13 @@ package edu.uncfsu.softwaredesign.f16.r2.util;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 
 public final class Utils {
 
@@ -55,6 +60,23 @@ public final class Utils {
 		values.forEach((k,v) -> msg.append("attribute \"").append(k).append("\" has invalid value \"").append(v).append("\"; ")	);
 		
 		return msg.toString();
+	}
+	
+	public static String createErrorMessageForFullRegistry(List<LocalDate> dates) {
+		
+		StringBuilder builder = new StringBuilder("Could not register reservation, the following days are full: ");
+		
+		dates.forEach(d -> builder.append(d).append(", "));
+		
+		return builder.toString();
+	}
+	
+	public static Stream<LocalDate> dateStream(Reservation reserve) {
+		return dateStream(reserve.getReservationDate(), reserve.getDays());
+	}
+	
+	public static Stream<LocalDate> dateStream(LocalDate start, int days) {
+		return IntStream.range(0, days).boxed().map(start::plusDays);
 	}
 		
 }

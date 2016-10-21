@@ -16,7 +16,7 @@ public abstract class Reservation {
 	//@Id
 	//private ObjectId id;
 	
-	private final long reservationId;
+	long reservationId;
 	private final boolean canChange;
 	private final float changeFeeModifier;
 	private final float costModifier;

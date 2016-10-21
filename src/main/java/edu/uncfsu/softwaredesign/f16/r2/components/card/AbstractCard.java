@@ -3,6 +3,7 @@ package edu.uncfsu.softwaredesign.f16.r2.components.card;
 import java.awt.Container;
 
 import javax.annotation.PostConstruct;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,10 @@ public abstract class AbstractCard extends JPanel implements IApplicationCard {
 	@PostConstruct
 	public final void register() {
 		cardRegistry.registerCard(this);
+	}
+	
+	protected void generateErrorMessage(String msg, String title) {
+		JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), msg, title, JOptionPane.ERROR_MESSAGE);
 	}
 	
 }
