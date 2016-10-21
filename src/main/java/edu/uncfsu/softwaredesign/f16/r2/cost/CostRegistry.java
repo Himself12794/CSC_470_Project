@@ -1,9 +1,10 @@
 package edu.uncfsu.softwaredesign.f16.r2.cost;
 
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.Map;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Maps;
 
@@ -15,8 +16,8 @@ import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
  * @author phwhitin
  *
  */
-@Service
-public abstract class CostRegistry implements Reportable {
+@Repository
+public class CostRegistry implements Reportable {
 	
 	private static final float DEFAULT_COST = 200.0F;
 	
@@ -73,6 +74,15 @@ public abstract class CostRegistry implements Reportable {
 			return value;
 		}
 		
+	}
+
+	@Override
+	public void writeReport(OutputStream out) {
+	}
+
+	@Override
+	public String getReport() {
+		return "";
 	}
 	
 }

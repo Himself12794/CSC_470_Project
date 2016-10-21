@@ -1,4 +1,4 @@
-package edu.uncfsu.softwaredesign.f16.r2.components;
+package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
 import java.awt.FlowLayout;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class IndexCard extends AbstractCard implements IApplicationCard {
+public class IndexCard extends AbstractCard {
 
 	private static final long serialVersionUID = 8747253147759007310L;
 	

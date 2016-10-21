@@ -1,4 +1,4 @@
-package edu.uncfsu.softwaredesign.f16.r2.components;
+package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
 import java.awt.Container;
 

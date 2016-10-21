@@ -10,7 +10,7 @@ public enum Season {
 	SPRING(Range.closedOpen(MonthDay.of(Month.MARCH, 20), MonthDay.of(Month.JUNE, 21))),
 	SUMMER(Range.closedOpen(MonthDay.of(Month.JUNE, 21), MonthDay.of(Month.SEPTEMBER, 22))), 
 	FALL(Range.closedOpen(MonthDay.of(Month.SEPTEMBER, 22), MonthDay.of(Month.DECEMBER, 21))), 
-	WINTER(Range.closedOpen(MonthDay.of(Month.DECEMBER, 21), MonthDay.of(Month.MARCH, 20))); 
+	WINTER(Range.openClosed(MonthDay.of(Month.MARCH, 20), MonthDay.of(Month.DECEMBER, 21))); 
 	
 	private final Range<MonthDay> dateRange;
 	

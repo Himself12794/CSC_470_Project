@@ -1,4 +1,4 @@
-package edu.uncfsu.softwaredesign.f16.r2.components;
+package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
 import java.awt.Container;
 
@@ -14,6 +14,7 @@ public abstract class AbstractCard extends JPanel implements IApplicationCard {
 	protected CardRegistry cardRegistry;
 
 	public AbstractCard(String name) {
+		super();
 		setName(name);
 	}
 	

@@ -13,79 +13,57 @@ import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
  */
 public abstract class Reservation {
 	
-	public static enum Type {
-		
-		PRE_PAID("Pre-paid", 90),
-		DAYS_ADVANCED_60("60 Days Advanced", false, 60),
-		INCENTIVE("Incentive"),
-		CONVENTIONAL("Conventional");
-		
-		public final String typeName;
-		public final boolean isPrepaid;
-		public final int minimumDays;
-		
-		Type(String name) {
-			this(name, true);
-		}
-		
-		Type(String name, boolean isPrepaid) {
-			this(name, isPrepaid, 1);
-		}
-		
-		Type(String name, int minimumDays) {
-			this(name, true, minimumDays);
-		}
-		
-		Type(String name, boolean isPrepaid, int minimumDays) {
-			this.typeName = name;
-			this.isPrepaid = isPrepaid;
-			this.minimumDays = minimumDays;
-		}
-		
-		public String[] getNames() {
-			String[] names = new String[values().length];
-			
-			int i = 0;
-			for (Type type :  values()) {
-				names[i] = type.name();
-			}
-			
-			return names;
-		}
-		
-		public String toString() {
-			return typeName;
-		}
-		
-	}
-	
 	//@Id
 	//private ObjectId id;
 	
-	protected final long reservationId;
-	protected final float costModifier;
-	protected final boolean canChange;
-	protected String customer;
-	protected LocalDate registrationDate;
-	protected LocalDate reservationDate;
-	protected int days;
-	protected boolean hasPaid = false;
-	protected float totalCost;
-	protected CreditCard creditCard;
+	private final long reservationId;
+	private final boolean canChange;
+	private final float changeFeeModifier;
+	private final float costModifier;
+	private String customer;
+	private String email;
+	private LocalDate registrationDate;
+	private LocalDate reservationDate;
+	private int days;
+	private boolean hasPaid = false;
+	private float totalCost;
+	private CreditCard creditCard;
 	
-	Reservation(long reservationId, float costModifier, String customer, LocalDate registrationDate, LocalDate reservationDate, int days,
-			boolean hasPaid, CostRegistry costs, boolean canChange) {
-		this.costModifier = costModifier;
+	Reservation(long reservationId, String customer, String email, LocalDate registrationDate, LocalDate reservationDate, int days,
+			boolean hasPaid, CostRegistry costs, boolean canChange, float changeFeeModifier, float costModifier, CreditCard card) {
 		this.reservationId = reservationId;
 		this.customer = customer;
+		this.email = email;
 		this.registrationDate = registrationDate;
 		this.reservationDate = reservationDate;
 		this.days = days;
 		this.canChange = canChange;
+		this.changeFeeModifier = changeFeeModifier;
+		this.costModifier = costModifier;
 		
 		calculateCost(costs);
 	}
 	
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public CreditCard getCreditCard() {
+		return creditCard;
+	}
+
+	public void setCreditCard(CreditCard creditCard) {
+		this.creditCard = creditCard;
+	}
+
+	public float getChangeFeeModifier() {
+		return changeFeeModifier;
+	}
+
 	public void markPaid() {
 		
 		if (creditCard == null) {
@@ -96,19 +74,7 @@ public abstract class Reservation {
 		
 	}
 	
-	protected float calculateCost(CostRegistry costs) {
-		
-		float total = 0.0F; 
-		for (LocalDate start = getReservationDate(); start.isBefore(start.plusDays(getDays())); start = start.plusDays(1)) {
-			total += costs.getCostForDay(start);
-		}
-		
-		setTotalCost(total);
-		
-		return total;
-	}
-	
-	public abstract float getChangeFeeModifier();
+	abstract float calculateCost(CostRegistry costs);
 	
 	/**
 	 * Gets the updated cost and returns the change in amount owed. 
@@ -124,17 +90,13 @@ public abstract class Reservation {
 		setReservationDate(date);
 		newCost = calculateCost(cost);
 		
-		newCost *= getChangeFeeModifier();
+		newCost *= changeFeeModifier;
 
 		return newCost > prevCost ? newCost - prevCost : 0.0F;
 	}
 	
 	public long getReservationId() {
 		return reservationId;
-	}
-
-	public float getCostModifier() {
-		return costModifier;
 	}
 	
 	public String getCustomer() {
@@ -189,5 +151,8 @@ public abstract class Reservation {
 		return canChange;
 	}
 	
+	public float getCostModifier() {
+		return costModifier;
+	}
 	
 }

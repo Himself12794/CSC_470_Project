@@ -23,8 +23,9 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import com.google.common.collect.Maps;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 
-import edu.uncfsu.softwaredesign.f16.r2.components.CardRegistry;
-import edu.uncfsu.softwaredesign.f16.r2.components.IApplicationCard;
+import edu.uncfsu.softwaredesign.f16.r2.components.card.CardRegistry;
+import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
+import edu.uncfsu.softwaredesign.f16.r2.components.card.ReservationFormCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.util.MenuBuilder;
 
@@ -65,7 +66,7 @@ public class Application extends JFrame {
 		setSize(800, 600);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setResizable(false);
+		//setResizable(false);
 		
 	}
 
@@ -115,7 +116,7 @@ public class Application extends JFrame {
 			app.buildComponentCards();
 			app.buildLayouts();
 			app.buildMenus();
-			app.setCurrentCard(INDEX);
+			app.setCurrentCard(ReservationFormCard.TITLE);
 			app.setVisible(true);
 		});
 	}
