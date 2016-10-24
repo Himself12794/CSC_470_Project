@@ -1,12 +1,20 @@
 package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +44,12 @@ import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 public class ReservationRegistry implements Reportable {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReservationRegistry.class.getSimpleName());
+	private static final File SAVE_LOCATION = new File("data/");
+	private static final File SAVE_FILE	= new File(SAVE_LOCATION, "reservation-registry.dat");
 	
 	public static final short MAX_ROOMS = 45;
 	
-	private final Map<Long, Reservation> reservations = Maps.newHashMap();
+	final Map<Long, Reservation> reservations = Maps.newHashMap();
 	
 	@Autowired
 	private CostRegistry costRegistry;
@@ -80,10 +90,10 @@ public class ReservationRegistry implements Reportable {
 	 */
 	public void registerReservation(Reservation reserve) throws ReservationRegistryFullException {
 		
-		Optional<List<LocalDate>> dates = getConflicts(reserve);
+		Optional<List<LocalDate>> conflicts = getConflicts(reserve);
 		
-		if (dates.isPresent()) {
-			throw new ReservationRegistryFullException(reserve, dates.get());
+		if (conflicts.isPresent()) {
+			throw new ReservationRegistryFullException(reserve, conflicts.get());
 		}
 		
 		if (reserve.getReservationId() == -1 || reservations.containsKey(reserve.reservationId)) {
@@ -191,6 +201,11 @@ public class ReservationRegistry implements Reportable {
 			return this;
 		}
 		
+		/**
+		 * Checks for invalid state and throws errors if it encounters problems
+		 * 
+		 * @throws InvalidReservationException
+		 */
 		private void errorCheck() throws InvalidReservationException {
 			
 			if (invalid) {
@@ -225,6 +240,8 @@ public class ReservationRegistry implements Reportable {
 			
 			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, false, costRegistry, false, type.changeFee, type.costModifier, card) {
  
+				private final ReservationType theType = type;
+				
 				@Override
 				float calculateCost(CostRegistry costs)  {
 					
@@ -254,6 +271,99 @@ public class ReservationRegistry implements Reportable {
 			return !invalid;
 		}
 		
+	}
+	
+	private Map<String, Object> reservationToMap(Reservation reserve) {
+		
+		Map<String, Object> values = Maps.newHashMap();
+		
+		values.put("id", reserve.reservationId);
+		values.put("guest", reserve.getCustomer());
+		values.put("email", reserve.getEmail());
+		values.put("hasPaid", reserve.isHasPaid());
+		values.put("registrationDate", reserve.getRegistrationDate());
+		values.put("reservationDate", reserve.getReservationDate());
+		values.put("days", reserve.getDays());
+		values.put("totalCost", reserve.getTotalCost());
+		values.put("creditCard", reserve.getCreditCard());
+		
+		try {
+			Field field = reserve.getClass().getDeclaredField("theType");
+			field.setAccessible(true);
+			values.put("theType", field.get(reserve));
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			LOGGER.error("An unexpected error has occurred during object deserialization", e);
+		}
+		
+		return values;
+	}
+	
+	private Reservation mapToReservation(Map<String, Object> values) {
+		
+		long id = (long)values.get("id");
+		String guest = (String)values.get("guest");
+		String email = (String)values.get("email");
+		boolean hasPaid = (boolean)values.get("hasPaid");
+		LocalDate registrationDate = (LocalDate)values.get("registrationDate");
+		LocalDate reservationDate = (LocalDate)values.get("reservationDate");
+		int days = (int)values.get("days");
+		float totalCost = (float)values.get("totalCost");
+		CreditCard creditCard = (CreditCard)values.get("creditCard");
+		ReservationType type = (ReservationType)values.get("theType");
+		
+		ReservationBuilder reserveBuilder = createReservationBuilder(type).setDays(days).setName(guest).setEmail(email);
+		reserveBuilder.card = creditCard;
+		reserveBuilder.registrationDate = registrationDate;
+		reserveBuilder.reservationDate = reservationDate;
+		Reservation reserve = null;
+		try {
+			reserve = reserveBuilder.createAndRegister(false);
+			reserve.hasPaid = hasPaid;
+			reserve.totalCost = totalCost;
+			reserve.reservationId = id;
+		} catch (ReservationException e) {
+			LOGGER.error("An unexpected error has occurred during object deserialization");
+		}
+		
+		return reserve;
+	}
+
+	void saveToDisk(File file, File path) {
+		
+		try {
+
+			FileUtils.forceMkdir(path);
+			
+			List<?> items = reservations.values().stream().map(this::reservationToMap).collect(Collectors.toList());
+			
+			FileOutputStream fos = new FileOutputStream(file);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(items);
+			oos.flush();
+			oos.close();
+			
+		} catch (IOException e) {
+			LOGGER.error("An unexpected exception has occurred during saving data to disk", e);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	void loadFromDisk(File file) {
+
+		if (SAVE_FILE.exists()) {
+			try {
+				
+				FileInputStream fis = new FileInputStream(file);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				List<Map<String, Object>> items = (List<Map<String, Object>>) ois.readObject();
+				ois.close();
+				
+				items.stream().map(this::mapToReservation).forEach(r -> reservations.put(r.reservationId, r));
+				
+			} catch (IOException | ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 }

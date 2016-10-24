@@ -1,6 +1,8 @@
 package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
-public enum ReservationType {
+import java.io.Serializable;
+
+public enum ReservationType implements Serializable {
 
 	PRE_PAID("Pre-paid", 1.1F, 0.75F, 90, true),
 	DAYS_ADVANCED_60("60 Days Advanced", 1.1F, 0.85F, 60, false),
