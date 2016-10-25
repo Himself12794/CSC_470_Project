@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +55,16 @@ public class ReservationRegistry implements Reportable {
 	
 	@Autowired
 	private CostRegistry costRegistry;
+	
+	private final File saveFile;
+	
+	public ReservationRegistry() {
+		this(SAVE_FILE);
+	}
+	
+	public ReservationRegistry(File file) {
+		saveFile = file;
+	}
 	
 	/**
 	 * Retrives the specified reservation, if it exists.
@@ -103,6 +115,7 @@ public class ReservationRegistry implements Reportable {
 		reservations.put(reserve.getReservationId(), reserve);
 		
 		LOGGER.info("Registered reservation with id {}", reserve.reservationId);
+		saveToDisk();
 	}
 	
 	/**
@@ -328,15 +341,15 @@ public class ReservationRegistry implements Reportable {
 		return reserve;
 	}
 
-	void saveToDisk(File file, File path) {
+	void saveToDisk() {
 		
 		try {
 
-			FileUtils.forceMkdir(path);
+			FileUtils.forceMkdir(saveFile.getParentFile());
 			
 			List<?> items = reservations.values().stream().map(this::reservationToMap).collect(Collectors.toList());
 			
-			FileOutputStream fos = new FileOutputStream(file);
+			FileOutputStream fos = new FileOutputStream(saveFile, false);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			oos.writeObject(items);
 			oos.flush();
@@ -347,16 +360,22 @@ public class ReservationRegistry implements Reportable {
 		}
 	}
 	
+	/**
+	 * Note: this will overwrite any unsaved data.
+	 */
+	@PostConstruct
 	@SuppressWarnings("unchecked")
-	void loadFromDisk(File file) {
+	void loadFromDisk() {
 
-		if (SAVE_FILE.exists()) {
+		if (saveFile.exists()) {
 			try {
 				
-				FileInputStream fis = new FileInputStream(file);
+				FileInputStream fis = new FileInputStream(saveFile);
 				ObjectInputStream ois = new ObjectInputStream(fis);
 				List<Map<String, Object>> items = (List<Map<String, Object>>) ois.readObject();
 				ois.close();
+				
+				reservations.clear();
 				
 				items.stream().map(this::mapToReservation).forEach(r -> reservations.put(r.reservationId, r));
 				
