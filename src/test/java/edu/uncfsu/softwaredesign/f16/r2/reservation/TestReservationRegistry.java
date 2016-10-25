@@ -22,11 +22,14 @@ public class TestReservationRegistry {
 	public void testReadWrite() throws ReservationException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		
 		CostRegistry costs = new CostRegistry();
-		ReservationRegistry registry = new ReservationRegistry();
+		ReservationRegistry registry = new ReservationRegistry(SAVE_FILE);
 		
 		Field field = registry.getClass().getDeclaredField("costRegistry");
 		field.setAccessible(true);
 		field.set(registry, costs);
+		registry.loadFromDisk();
+		
+		registry.reservations.clear();
 		
 		Reservation reserve = registry.createReservationBuilder(ReservationType.CONVENTIONAL)
 			.setDays(1).setName("Bob").setEmail("sfsdf")
@@ -36,13 +39,11 @@ public class TestReservationRegistry {
 		
 		registry.registerReservation(reserve);
 		
-		registry.saveToDisk(SAVE_FILE, SAVE_LOCATION);
 		registry.reservations.clear();
-		registry.loadFromDisk(SAVE_FILE);
+		registry.loadFromDisk();
 		
 		assertTrue(!registry.reservations.isEmpty());
 		
-		System.out.println(reserve);
 		registry.reservations.values().forEach(System.out::println);
 		assertTrue(registry.getReservationById(reserve.reservationId).get().equals(reserve));
 		
