@@ -1,4 +1,4 @@
-package com.example;
+package edu.uncfsu.softwaredesign.f16.r2;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,24 +1,22 @@
-package edu.uncfsu.softwaredesign.f16.r2.card;
+package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
-import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.List;
 
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import edu.uncfsu.softwaredesign.f16.r2.Application;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 
 @Component
-public class ViewReservationsCard extends JPanel implements IApplicationCard {
+public class ViewReservationsCard extends AbstractCard implements IApplicationCard {
 
 	private static final long serialVersionUID = 2369089937389802912L;
 	
@@ -38,18 +36,8 @@ public class ViewReservationsCard extends JPanel implements IApplicationCard {
 	private ReservationRegistry reservationRegistry;
 	
 	public ViewReservationsCard() {
-		super(new GridBagLayout());
-		Application.cardRegistry.registerCard(this);
-	}
-	
-	@Override
-	public String getName() {
-		return "View";
-	}
-
-	@Override
-	public Container getComponent() {
-		return this;
+		super("View");
+		setLayout(new GridBagLayout());
 	}
 
 	@SuppressWarnings("serial")
@@ -75,6 +63,8 @@ public class ViewReservationsCard extends JPanel implements IApplicationCard {
 		List<Reservation> reservations = reservationRegistry.getReservations();
 		Object[][] tableData = new Object[reservations.size()][7];
 		
+		System.out.println(reservations.size());
+		
 		for (int i = 0; i < reservations.size(); i++) {
 			Reservation res = reservations.get(i);  
 			tableData[i] = new Object[]{ new Long(res.getReservationId()), res.getCustomer(), res.getReservationDate(),
@@ -82,6 +72,8 @@ public class ViewReservationsCard extends JPanel implements IApplicationCard {
 		}
 		
 		table.setDataVector(tableData, TABLE_LABELS);
+		revalidate();
+		repaint();
 	}
 	
 	@Override
@@ -91,14 +83,18 @@ public class ViewReservationsCard extends JPanel implements IApplicationCard {
 	}
 
 	@Override
-	public String getMenuOptionName() {
+	public String getMenuItemName() {
 		// TODO Auto-generated method stub
 		return "View Reservations";
 	}
 
 	@Override
 	public void reload() {
-		buildTable();
+		SwingUtilities.invokeLater(this::buildTable);
+		SwingUtilities.invokeLater(() -> {
+			revalidate();
+			repaint();
+		});
 	}
 
 }

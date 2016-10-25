@@ -1,6 +1,5 @@
-package edu.uncfsu.softwaredesign.f16.r2.card;
+package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
-import java.awt.Container;
 import java.awt.FlowLayout;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,29 +13,19 @@ import javax.swing.SwingConstants;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
-import edu.uncfsu.softwaredesign.f16.r2.Application;
-
 @Component
-public class IndexCard extends JLabel implements IApplicationCard {
+public class IndexCard extends AbstractCard {
 
 	private static final long serialVersionUID = 8747253147759007310L;
 	
 	private final JPanel buttonContent		= new JPanel(new FlowLayout(FlowLayout.CENTER));
+	private final JLabel innerHtml			= new JLabel();
+	//private final ImagePanel tacoTuesday	= new ImagePanel("img/taco_tuesday.jpg");
 	private final JButton managerButton		= new JButton("Login as Management");
 	private final JButton employeeButton	= new JButton("Login as Employee");
 	
 	public IndexCard() {
-		Application.cardRegistry.registerCard(this);
-	}
-	
-	@Override
-	public String getName() {
-		return "Index";
-	}
-
-	@Override
-	public Container getComponent() {
-		return this;
+		super("Index");
 	}
 
 	@Override
@@ -45,11 +34,11 @@ public class IndexCard extends JLabel implements IApplicationCard {
 		StringWriter writer = new StringWriter();
 		try {
 			IOUtils.copy(in, writer);
-			setText(writer.toString());
+			innerHtml.setText(writer.toString());
 		} catch (IOException e) {
 		}
 
-		setVerticalAlignment(SwingConstants.TOP);
+		innerHtml.setVerticalAlignment(SwingConstants.TOP);
 
 		/*mainContent.add(buttonContent, BUTTONS);
 		buttonContent.add(managerButton);
@@ -63,6 +52,8 @@ public class IndexCard extends JLabel implements IApplicationCard {
 			isManager = false;
 			onIndexClick(null);
 		});*/
+		add(innerHtml);
+		//add(tacoTuesday);
 	}
 
 	@Override
@@ -71,7 +62,7 @@ public class IndexCard extends JLabel implements IApplicationCard {
 	}
 
 	@Override
-	public String getMenuOptionName() {
+	public String getMenuItemName() {
 		return "Index";
 	}
 
