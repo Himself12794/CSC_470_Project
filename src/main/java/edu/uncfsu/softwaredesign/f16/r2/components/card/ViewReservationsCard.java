@@ -63,8 +63,6 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		List<Reservation> reservations = reservationRegistry.getReservations();
 		Object[][] tableData = new Object[reservations.size()][7];
 		
-		System.out.println(reservations.size());
-		
 		for (int i = 0; i < reservations.size(); i++) {
 			Reservation res = reservations.get(i);  
 			tableData[i] = new Object[]{ new Long(res.getReservationId()), res.getCustomer(), res.getReservationDate(),

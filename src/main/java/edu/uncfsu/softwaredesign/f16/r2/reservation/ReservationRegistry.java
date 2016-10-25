@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,7 @@ import com.google.common.collect.Range;
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
+import edu.uncfsu.softwaredesign.f16.r2.transactions.TransactionController;
 import edu.uncfsu.softwaredesign.f16.r2.util.InvalidReservationException;
 import edu.uncfsu.softwaredesign.f16.r2.util.NoSuchReservationTypeException;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
@@ -46,7 +46,7 @@ import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 public class ReservationRegistry implements Reportable {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReservationRegistry.class.getSimpleName());
-	private static final File SAVE_LOCATION = new File("data/");
+	private static final String SAVE_LOCATION = "data/";
 	private static final File SAVE_FILE	= new File(SAVE_LOCATION, "reservation-registry.dat");
 	
 	public static final short MAX_ROOMS = 45;
@@ -55,6 +55,9 @@ public class ReservationRegistry implements Reportable {
 	
 	@Autowired
 	private CostRegistry costRegistry;
+	
+	@Autowired
+	private TransactionController transactionController;
 	
 	private final File saveFile;
 	
@@ -113,6 +116,10 @@ public class ReservationRegistry implements Reportable {
 		} 
 
 		reservations.put(reserve.getReservationId(), reserve);
+		
+		if (reserve.theType.isPrepaid) {
+			transactionController.doPayment(reserve);
+		}
 		
 		LOGGER.info("Registered reservation with id {}", reserve.reservationId);
 		saveToDisk();
@@ -253,7 +260,9 @@ public class ReservationRegistry implements Reportable {
 			
 			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, false, costRegistry, false, type.changeFee, type.costModifier, card) {
  
-				private final ReservationType theType = type;
+				{
+					theType = type;
+				}
 				
 				@Override
 				float calculateCost(CostRegistry costs)  {
@@ -299,14 +308,7 @@ public class ReservationRegistry implements Reportable {
 		values.put("days", reserve.getDays());
 		values.put("totalCost", reserve.getTotalCost());
 		values.put("creditCard", reserve.getCreditCard());
-		
-		try {
-			Field field = reserve.getClass().getDeclaredField("theType");
-			field.setAccessible(true);
-			values.put("theType", field.get(reserve));
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			LOGGER.error("An unexpected error has occurred during object deserialization", e);
-		}
+		values.put("theType", reserve.theType);
 		
 		return values;
 	}

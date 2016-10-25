@@ -12,9 +12,7 @@ public class GenericWorker extends SwingWorker<Integer, Integer> {
 	
 	@Override
 	protected Integer doInBackground() throws Exception {
-		
 		process.run();
-		
 		return -1;
 	}
 

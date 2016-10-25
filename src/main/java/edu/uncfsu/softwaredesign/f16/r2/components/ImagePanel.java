@@ -2,6 +2,7 @@ package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,10 @@ public class ImagePanel extends JPanel{
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(image, 0, 0, null);            
+    }
+    
+    public Image getImage() {
+    	return image;
     }
 
 }

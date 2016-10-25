@@ -30,7 +30,6 @@ import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
-import edu.uncfsu.softwaredesign.f16.r2.Application;
 import edu.uncfsu.softwaredesign.f16.r2.GenericWorker;
 import edu.uncfsu.softwaredesign.f16.r2.components.ImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.components.JTextFieldLimit;
@@ -75,13 +74,8 @@ public class ReservationFormCard extends AbstractCard {
 	@Autowired
 	private ReservationRegistry reservationRegistry;
 	
-	@Autowired
-	private Application theApp;
-	
 	public ReservationFormCard() {
 		super(TITLE);
-		//setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		//setLayout(new GridBagLayout());
 		setLayout(new MigLayout());
 		
 	}

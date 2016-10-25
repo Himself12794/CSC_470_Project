@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
+import edu.uncfsu.softwaredesign.f16.r2.transactions.TransactionController;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
 
 public class TestReservationRegistry {
@@ -22,11 +23,16 @@ public class TestReservationRegistry {
 	public void testReadWrite() throws ReservationException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		
 		CostRegistry costs = new CostRegistry();
+		TransactionController trans = new TransactionController();
+		
 		ReservationRegistry registry = new ReservationRegistry(SAVE_FILE);
 		
 		Field field = registry.getClass().getDeclaredField("costRegistry");
+		Field field2 = registry.getClass().getDeclaredField("transactionController");
 		field.setAccessible(true);
+		field2.setAccessible(true);
 		field.set(registry, costs);
+		field2.set(registry, trans);
 		registry.loadFromDisk();
 		
 		registry.reservations.clear();

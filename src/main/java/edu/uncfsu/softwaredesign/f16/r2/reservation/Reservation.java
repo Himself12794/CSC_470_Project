@@ -27,7 +27,8 @@ public abstract class Reservation {
 	private LocalDate reservationDate;
 	private int days;
 	private CreditCard creditCard;
-
+	
+	ReservationType theType;
 	long reservationId;
 	boolean hasPaid = false;
 	float totalCost;

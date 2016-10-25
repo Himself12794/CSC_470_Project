@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import com.google.common.collect.Maps;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 
+import edu.uncfsu.softwaredesign.f16.r2.components.ImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.CardRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.ReservationFormCard;
@@ -64,6 +65,7 @@ public class Application extends JFrame {
 		}
 		setTitle(APP_NAME);
 		setSize(800, 600);
+		setIconImage(new ImagePanel("img/icon.png").getImage());
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//setResizable(false);
