@@ -43,4 +43,3 @@ Tasks 2:
 4. Derive a design class diagram from the design sequence diagrams produced earlier* (20%) - Javier
 5. Perform user interface design (25%) - Philip<br>
   a. For each of the use cases, produce a user interface design*
->>>>>>> 9b87ab7ca9f1a0d5fbd51a316dfb0539be63005a
