@@ -10,17 +10,17 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-public class ImagePanel extends JPanel{
+public class JImagePanel extends JPanel{
 	
 	private static final long serialVersionUID = 7999242502601932849L;
 	
 	private BufferedImage image;
 
-	public ImagePanel(String file) {
+	public JImagePanel(String file) {
 		this(new File(file));
 	}
 	
-    public ImagePanel(File file) {
+    public JImagePanel(File file) {
        try {                
           this.image = ImageIO.read(file);
           setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));

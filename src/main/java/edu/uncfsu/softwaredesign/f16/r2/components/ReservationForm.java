@@ -64,7 +64,7 @@ public class ReservationForm extends JPanel{
 	private final JComboBox<ReservationType> dropDown 	= new JComboBox<>(ReservationType.values());
 	private final JCheckBox isPaid						= new JCheckBox("Has Paid");
 	private final JCheckBox isCancelled					= new JCheckBox("Is Active");
-	private final JPanel imageHeader					= new ImagePanel("img/generic.png");
+	private final JPanel imageHeader					= new JImagePanel("img/generic.png");
 
 	private final ReservationRegistry reservationRegistry;
 	

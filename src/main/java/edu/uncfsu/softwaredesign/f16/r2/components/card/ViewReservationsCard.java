@@ -2,6 +2,7 @@ package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
@@ -62,13 +63,13 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 			}
 		});
 		reservationTable.getTableHeader().setReorderingAllowed(false);
-		/*reservationTable.addMouseListener(new MouseAdapter(){
+		reservationTable.addMouseListener(new MouseAdapter(){
 			
 			public void mousePressed(MouseEvent e) {
 				
 			}
 			
-		});*/
+		});
 	}
 
 	public void buildTable() {
@@ -111,10 +112,6 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 			//new ModifyReservation(theApp, reservationRegistry.getReservations().get(0)).setVisible(true);
 			
 		});
-	}
-
-	public void tableMouseListener(MouseEvent e) {
-		
 	}
 	
 }

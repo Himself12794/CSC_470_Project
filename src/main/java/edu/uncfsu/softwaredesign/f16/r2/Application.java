@@ -17,24 +17,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 
 import com.google.common.collect.Maps;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 
-import edu.uncfsu.softwaredesign.f16.r2.components.ImagePanel;
+import edu.uncfsu.softwaredesign.f16.r2.components.JImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.CardRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.ReservationFormCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.util.MenuBuilder;
 
-@SpringBootApplication(exclude={MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
+@SpringBootApplication
 public class Application extends JFrame {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Application.class.getSimpleName());
 	private static final long serialVersionUID 		= -3885000271483573087L;
+	
+	private static Application THE_APP;
 	
 	public static final String APP_NAME 			= "Reservation Management System";
 	
@@ -62,11 +62,11 @@ public class Application extends JFrame {
 		}
 		setTitle(APP_NAME);
 		setSize(800, 600);
-		setIconImage(new ImagePanel("img/icon.png").getImage());
+		setIconImage(new JImagePanel("img/icon.png").getImage());
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//setResizable(false);
-		
+		THE_APP = this;
 	}
 
 	void buildComponentCards() {
@@ -108,6 +108,10 @@ public class Application extends JFrame {
 	
 	public ReservationRegistry getReservationRegistry() {
 		return reservationRegistry;
+	}
+	
+	public static Application getApp() {
+		return THE_APP;
 	}
 	
 	public static void main(String[] args) {

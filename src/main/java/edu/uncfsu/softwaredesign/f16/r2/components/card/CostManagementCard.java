@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import com.toedter.calendar.JDateChooser;
 
-import edu.uncfsu.softwaredesign.f16.r2.components.ImagePanel;
+import edu.uncfsu.softwaredesign.f16.r2.components.JImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 
 @Component
@@ -20,7 +20,7 @@ public class CostManagementCard extends AbstractCard {
 
 	private static final long serialVersionUID = 8979451122696222050L;
 
-	private final JPanel imageHeader 		= new ImagePanel("img/generic.png");
+	private final JPanel imageHeader 		= new JImagePanel("img/generic.png");
 	private final JDateChooser dayPicker 	= new JDateChooser();
 	
 	

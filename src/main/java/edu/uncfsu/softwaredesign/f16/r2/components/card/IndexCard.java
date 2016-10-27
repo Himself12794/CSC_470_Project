@@ -36,25 +36,11 @@ public class IndexCard extends AbstractCard {
 			StringWriter writer = new StringWriter();
 			IOUtils.copy(in, writer);
 			innerHtml.setText(writer.toString());
-		} catch (IOException e) {
-		}
+		} catch (IOException e) {}
 
 		innerHtml.setVerticalAlignment(SwingConstants.TOP);
 
-		/*mainContent.add(buttonContent, BUTTONS);
-		buttonContent.add(managerButton);
-		managerButton.addActionListener(l -> {
-			isManager = true;
-			onIndexClick(null);
-		});
-		
-		buttonContent.add(employeeButton);
-		employeeButton.addActionListener(l -> {
-			isManager = false;
-			onIndexClick(null);
-		});*/
 		add(innerHtml);
-		//add(tacoTuesday);
 	}
 
 	@Override

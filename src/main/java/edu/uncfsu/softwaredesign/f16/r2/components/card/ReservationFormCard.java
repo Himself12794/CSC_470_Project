@@ -31,7 +31,7 @@ import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
 import edu.uncfsu.softwaredesign.f16.r2.GenericWorker;
-import edu.uncfsu.softwaredesign.f16.r2.components.ImagePanel;
+import edu.uncfsu.softwaredesign.f16.r2.components.JImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.components.JTextFieldLimit;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
@@ -65,7 +65,7 @@ public class ReservationFormCard extends AbstractCard {
 	private final JButton submitButton					= new JButton("Submit");
 	private final JDateChooser dateChooser 				= new JDateChooser();
 	private final JComboBox<ReservationType> dropDown 	= new JComboBox<>(ReservationType.values());
-	private final JPanel imageHeader					= new ImagePanel("img/generic.png");
+	private final JPanel imageHeader					= new JImagePanel("img/generic.png");
 	
 	private ReservationBuilder reservationBuilder = null;
 	private Reservation builtReservation = null;
