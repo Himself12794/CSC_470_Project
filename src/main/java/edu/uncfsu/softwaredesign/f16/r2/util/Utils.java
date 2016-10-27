@@ -78,5 +78,14 @@ public final class Utils {
 	public static Stream<LocalDate> dateStream(LocalDate start, int days) {
 		return IntStream.range(0, days).boxed().map(start::plusDays);
 	}
+	
+	public static void sleep(long millis) {
 		
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) {
+		}
+		
+	}
+	
 }

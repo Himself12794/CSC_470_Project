@@ -33,7 +33,6 @@ public class TestReservationRegistry {
 		field2.setAccessible(true);
 		field.set(registry, costs);
 		field2.set(registry, trans);
-		registry.loadFromDisk();
 		
 		registry.reservations.clear();
 		

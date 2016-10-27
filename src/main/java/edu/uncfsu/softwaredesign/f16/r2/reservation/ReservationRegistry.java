@@ -258,12 +258,8 @@ public class ReservationRegistry implements Reportable {
 			
 			errorCheck();
 			
-			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, false, costRegistry, false, type.changeFee, type.costModifier, card) {
- 
-				{
-					theType = type;
-				}
-				
+			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, false, costRegistry, false, type.changeFee, type.costModifier, card, type) {
+
 				@Override
 				float calculateCost(CostRegistry costs)  {
 					

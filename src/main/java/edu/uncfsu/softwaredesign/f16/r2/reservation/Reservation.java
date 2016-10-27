@@ -7,7 +7,7 @@ import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 
 /**
  * Object representing a reservation. To ensure consistent ids, only the
- * CostRegistry will be allowed to create them.
+ * ReservationRegistry will be allowed to create them. 
  * 
  * @author phwhitin
  *
@@ -35,7 +35,7 @@ public abstract class Reservation {
 
 	Reservation(long reservationId, String customer, String email, LocalDate registrationDate,
 			LocalDate reservationDate, int days, boolean hasPaid, CostRegistry costs, boolean canChange,
-			float changeFeeModifier, float costModifier, CreditCard card) {
+			float changeFeeModifier, float costModifier, CreditCard card, ReservationType type) {
 		this.reservationId = reservationId;
 		this.customer = customer;
 		this.email = email;
@@ -46,6 +46,7 @@ public abstract class Reservation {
 		this.changeFeeModifier = changeFeeModifier;
 		this.costModifier = costModifier;
 		this.creditCard = card;
+		this.theType = type;
 
 		calculateCost(costs);
 	}
@@ -161,6 +162,16 @@ public abstract class Reservation {
 		return costModifier;
 	}
 
+	/**
+	 * The only reason it is created this way is to have metadata about reservations without needing to 
+	 * create a new instance.
+	 * 
+	 * @return
+	 */
+	public ReservationType getType() {
+		return theType;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
