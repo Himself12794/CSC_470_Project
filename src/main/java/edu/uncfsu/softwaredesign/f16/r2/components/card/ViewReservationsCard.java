@@ -6,8 +6,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 
 import edu.uncfsu.softwaredesign.f16.r2.Application;
+import edu.uncfsu.softwaredesign.f16.r2.components.JReservationPopup;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 
@@ -63,10 +66,15 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 			}
 		});
 		reservationTable.getTableHeader().setReorderingAllowed(false);
+		reservationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		reservationTable.addMouseListener(new MouseAdapter(){
 			
 			public void mousePressed(MouseEvent e) {
-				
+				int row = reservationTable.getSelectedRow();
+				if (row > -1) {
+					JPopupMenu p = new JReservationPopup(reserve.get(row));
+					p.show(reservationTable, e.getX(), e.getY());
+				}
 			}
 			
 		});
