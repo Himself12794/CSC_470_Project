@@ -1,6 +1,7 @@
 package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
 import java.awt.FlowLayout;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -30,9 +31,9 @@ public class IndexCard extends AbstractCard {
 
 	@Override
 	public void buildComponent() {
-		InputStream in = getClass().getClassLoader().getResourceAsStream("index.html");
-		StringWriter writer = new StringWriter();
 		try {
+			InputStream in = new FileInputStream("html/index.html");
+			StringWriter writer = new StringWriter();
 			IOUtils.copy(in, writer);
 			innerHtml.setText(writer.toString());
 		} catch (IOException e) {

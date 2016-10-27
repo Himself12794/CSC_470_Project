@@ -65,7 +65,7 @@ public class ReservationFormCard extends AbstractCard {
 	private final JButton submitButton					= new JButton("Submit");
 	private final JDateChooser dateChooser 				= new JDateChooser();
 	private final JComboBox<ReservationType> dropDown 	= new JComboBox<>(ReservationType.values());
-	private final JPanel imageHeader					= new ImagePanel("img/generic.jpg");
+	private final JPanel imageHeader					= new ImagePanel("img/generic.png");
 	
 	private ReservationBuilder reservationBuilder = null;
 	private Reservation builtReservation = null;
