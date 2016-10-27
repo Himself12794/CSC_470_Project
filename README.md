@@ -35,11 +35,11 @@ Tasks 2:
 
 1. Iterate the steps in Submission 1 and refine them - Nathaniel
 2. Perform actor-system interaction modeling (20%)<br>
-  a. Write expanded use cases for the system* - Nathaniel<br>
+  a. <s>Write expanded use cases for the system* - Nathaniel<br></s>
   b. Develop a prototype for each subsystem – Take screenshots in the submitted documents* and demonstrate in class - Philip
 3. Perform object interaction modeling (25%) - Javier<br>
-  a. Construct two scenarios and their scenario tables* <br> 
-  b. Produce design sequence diagrams for the nontrivial steps of the expanded use cases produced earlier*
-4. Derive a design class diagram from the design sequence diagrams produced earlier* (20%) - Javier
+  a. <s>Construct two scenarios and their scenario tables* <br></s> 
+  b. <s>Produce design sequence diagrams for the nontrivial steps of the expanded use cases produced earlier*</s>
+4. <s>Derive a design class diagram from the design sequence diagrams produced earlier* (20%)</s> - Javier
 5. Perform user interface design (25%) - Philip<br>
   a. For each of the use cases, produce a user interface design*
