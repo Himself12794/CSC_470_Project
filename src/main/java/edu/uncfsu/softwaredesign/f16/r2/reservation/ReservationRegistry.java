@@ -205,6 +205,11 @@ public class ReservationRegistry implements Reportable {
 			return this;
 		}
 		
+		public ReservationBuilder setRegistrationDate(LocalDate date) {
+			registrationDate = date;
+			return this;
+		}
+		
 		public ReservationBuilder setPayment(CreditCard card) {
 			this.card = card;
 			return this;

@@ -2,6 +2,7 @@ package edu.uncfsu.softwaredesign.f16.r2.components.card;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.JScrollPane;
@@ -12,6 +13,9 @@ import javax.swing.table.DefaultTableModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
+
+import edu.uncfsu.softwaredesign.f16.r2.Application;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 
@@ -31,9 +35,13 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 	
 	private final JTable reservationTable	= new JTable();
 	private final JScrollPane tablePane		= new JScrollPane(reservationTable);
+	private final List<Reservation> reserve	= Lists.newArrayList();
 	
 	@Autowired
 	private ReservationRegistry reservationRegistry;
+	
+	@Autowired
+	private Application theApp;
 	
 	public ViewReservationsCard() {
 		super("View");
@@ -54,6 +62,13 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 			}
 		});
 		reservationTable.getTableHeader().setReorderingAllowed(false);
+		/*reservationTable.addMouseListener(new MouseAdapter(){
+			
+			public void mousePressed(MouseEvent e) {
+				
+			}
+			
+		});*/
 	}
 
 	public void buildTable() {
@@ -70,19 +85,19 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		}
 		
 		table.setDataVector(tableData, TABLE_LABELS);
+		reserve.clear();
+		reserve.addAll(reservations);
 		revalidate();
 		repaint();
 	}
 	
 	@Override
 	public String getMenuName() {
-		// TODO Auto-generated method stub
 		return "Reservation";
 	}
 
 	@Override
 	public String getMenuItemName() {
-		// TODO Auto-generated method stub
 		return "View Reservations";
 	}
 
@@ -92,7 +107,14 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		SwingUtilities.invokeLater(() -> {
 			revalidate();
 			repaint();
+			
+			//new ModifyReservation(theApp, reservationRegistry.getReservations().get(0)).setVisible(true);
+			
 		});
 	}
 
+	public void tableMouseListener(MouseEvent e) {
+		
+	}
+	
 }

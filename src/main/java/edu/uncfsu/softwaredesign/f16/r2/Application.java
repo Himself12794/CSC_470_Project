@@ -34,12 +34,9 @@ import edu.uncfsu.softwaredesign.f16.r2.util.MenuBuilder;
 public class Application extends JFrame {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Application.class.getSimpleName());
-	
 	private static final long serialVersionUID 		= -3885000271483573087L;
-	private static final String APP_NAME 			= "Reservation Management System";
-	private static final String BUTTONS 			= "Buttons";
-	private static final String VIEW_RESERVATIONS 	= "View";
-	private static final String INDEX 				= "Index";
+	
+	public static final String APP_NAME 			= "Reservation Management System";
 	
 	@Autowired
 	public CardRegistry cardRegistry;
@@ -109,6 +106,10 @@ public class Application extends JFrame {
 		}
 	}
 	
+	public ReservationRegistry getReservationRegistry() {
+		return reservationRegistry;
+	}
+	
 	public static void main(String[] args) {
 		
 		SwingUtilities.invokeLater(() -> {
@@ -120,6 +121,7 @@ public class Application extends JFrame {
 			app.buildMenus();
 			app.setCurrentCard(ReservationFormCard.TITLE);
 			app.setVisible(true);
+			
 		});
 	}
 }

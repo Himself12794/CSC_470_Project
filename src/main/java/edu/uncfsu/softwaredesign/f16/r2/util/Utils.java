@@ -9,6 +9,8 @@ import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import javax.swing.JOptionPane;
+
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 
 public final class Utils {
@@ -86,6 +88,10 @@ public final class Utils {
 		} catch (InterruptedException e) {
 		}
 		
+	}
+	
+	public static void generateErrorMessage(String msg, String title) {
+		JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), msg, title, JOptionPane.ERROR_MESSAGE);
 	}
 	
 }

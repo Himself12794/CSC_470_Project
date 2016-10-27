@@ -187,6 +187,7 @@ public abstract class Reservation {
 		result = prime * result + ((registrationDate == null) ? 0 : registrationDate.hashCode());
 		result = prime * result + ((reservationDate == null) ? 0 : reservationDate.hashCode());
 		result = prime * result + (int) (reservationId ^ (reservationId >>> 32));
+		result = prime * result + ((theType == null) ? 0 : theType.hashCode());
 		result = prime * result + Float.floatToIntBits(totalCost);
 		return result;
 	}
@@ -236,6 +237,8 @@ public abstract class Reservation {
 		} else if (!reservationDate.equals(other.reservationDate))
 			return false;
 		if (reservationId != other.reservationId)
+			return false;
+		if (theType != other.theType)
 			return false;
 		if (Float.floatToIntBits(totalCost) != Float.floatToIntBits(other.totalCost))
 			return false;

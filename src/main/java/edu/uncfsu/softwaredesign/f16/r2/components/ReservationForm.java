@@ -1,4 +1,4 @@
-package edu.uncfsu.softwaredesign.f16.r2.components.card;
+package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -7,8 +7,10 @@ import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -19,8 +21,6 @@ import javax.swing.SpinnerNumberModel;
 import org.apache.commons.lang3.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -31,8 +31,7 @@ import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
 import edu.uncfsu.softwaredesign.f16.r2.GenericWorker;
-import edu.uncfsu.softwaredesign.f16.r2.components.ImagePanel;
-import edu.uncfsu.softwaredesign.f16.r2.components.JTextFieldLimit;
+import edu.uncfsu.softwaredesign.f16.r2.components.card.ReservationFormCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry.ReservationBuilder;
@@ -41,11 +40,9 @@ import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationRegistryFullException;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
-import net.miginfocom.swing.MigLayout;
 
-@Component
-public class ReservationFormCard extends AbstractCard {
-
+public class ReservationForm extends JPanel{
+	
 	private static final long serialVersionUID 	= 5652047994860330697L;
 	private static final Logger LOGGER 			= LoggerFactory.getLogger(ReservationFormCard.class.getSimpleName());	
 	
@@ -65,19 +62,19 @@ public class ReservationFormCard extends AbstractCard {
 	private final JButton submitButton					= new JButton("Submit");
 	private final JDateChooser dateChooser 				= new JDateChooser();
 	private final JComboBox<ReservationType> dropDown 	= new JComboBox<>(ReservationType.values());
+	private final JCheckBox isPaid						= new JCheckBox("Has Paid");
+	private final JCheckBox isCancelled					= new JCheckBox("Is Active");
 	private final JPanel imageHeader					= new ImagePanel("img/generic.png");
+
+	private final ReservationRegistry reservationRegistry;
 	
 	private ReservationBuilder reservationBuilder = null;
 	private Reservation builtReservation = null;
-	private boolean hasSubmitted = false;
-
-	@Autowired
-	private ReservationRegistry reservationRegistry;
+	private boolean isViewing = false;
 	
-	public ReservationFormCard() {
-		super(TITLE);
-		setLayout(new MigLayout());
-		
+	public ReservationForm(ReservationRegistry reservationRegistry) {
+		this.reservationRegistry = reservationRegistry;
+		buildComponent();
 	}
 
 	public void buildSubComponents() {
@@ -95,7 +92,6 @@ public class ReservationFormCard extends AbstractCard {
 		
 	}
 	
-	@Override
 	public void buildComponent() {
 		removeAll();
 		buildSubComponents();
@@ -146,21 +142,9 @@ public class ReservationFormCard extends AbstractCard {
 		builder.add(totalCost, cc.xy(3, 21));
 		builder.add(calculateButton, cc.xy(7, 21));
 		builder.add(submitButton, cc.xy(11, 21));
-		
-		add(builder.getContainer(), "align center");
+		add(builder.getContainer());
 	}
-
-	@Override
-	public String getMenuName() {
-		return "Reservation";
-	}
-
-	@Override
-	public String getMenuItemName() {
-		return "Create Reservation";
-	}
-
-	@Override
+	
 	public void reload() {
 		doTypeValidation(null);
 		submitButton.setEnabled(false);
@@ -178,7 +162,7 @@ public class ReservationFormCard extends AbstractCard {
 		int minDays = type.minimumDays;
 		Date day = Utils.todayPlus(minDays);
 		
-		if (dateChooser.getDate() == null || dateChooser.getDate().before(day)) {
+		if ((dateChooser.getDate() == null || dateChooser.getDate().before(day)) && !isViewing) {
 			dateChooser.setDate(day);
 		}
 		
@@ -194,28 +178,21 @@ public class ReservationFormCard extends AbstractCard {
 		cardSecurity.setEditable(type.isPrepaid);
 	}
 	
+
+	
 	/**
-	 * Called when this form is submitted.
-	 * 
+	 * Called when this form is submitted. Builds and returns the unregistered reservation.
 	 */
-	public synchronized void doSubmit() {
-		try {
-			reservationRegistry.registerReservation(builtReservation);
-			builtReservation = null;
-			submitButton.setEnabled(false);
-		} catch (ReservationRegistryFullException re) {
-			LOGGER.error("The registry is full for this reservation range");
-			LOGGER.trace("Trace", re);
-			showError(re);
-		} 
+	public Optional<Reservation> doSubmit() {
+		return Optional.ofNullable(builtReservation);
 	}
 	
 	/**
-	 * Called to calculate the price
+	 * Called to calculate the price and validate the reservation.
 	 * 
 	 * @param e
 	 */
-	public synchronized void doCalculate() {
+	public void doCalculate() {
 		
 		LOGGER.info("Calculate button has been pressed");
 		
@@ -227,11 +204,18 @@ public class ReservationFormCard extends AbstractCard {
 			.setPayment(getCardFromFields())
 			.setReservationDate(getReservationDate());
 		
+		if (isViewing && builtReservation != null) {
+			reservationBuilder.setRegistrationDate(builtReservation.getRegistrationDate());
+		}
+		
 		try {
 			
-			builtReservation = reservationBuilder.createAndRegister(false);
+			Reservation newerRes = reservationBuilder.createAndRegister(false);
 			totalCost.setText(String.format("$%.2f", builtReservation.getTotalCost()));
-			submitButton.setEnabled(true);
+			if (!newerRes.equals(builtReservation)) {
+				submitButton.setEnabled(true);
+				builtReservation = newerRes;
+			}
 			
 		} catch (ReservationException e1) {
 			
@@ -242,6 +226,38 @@ public class ReservationFormCard extends AbstractCard {
 		
 	}
 
+	public void setShowModifyOptions(boolean value) {
+		
+		isPaid.setVisible(value);
+		isCancelled.setVisible(value);
+		
+	}
+	
+	public void setReservation(Reservation reservation) {
+		
+		setGuestName(reservation.getCustomer());
+		setGuestEmail(reservation.getEmail());
+		setCardForFields(reservation.getCreditCard());
+		setReservationType(reservation.getType());
+		setDays(reservation.getDays());
+		setReservationDate(reservation.getReservationDate());
+		doCalculate();
+	}
+	
+	public void setCardForFields(CreditCard card) {
+		if (card != null) setCardForFields(card.getNameOnCard(), card.getCardNumber(), card.getSecurityCode(), card.getExpirationDate());	
+	}
+	
+	public void setCardForFields(String name, String number, short code, YearMonth expire) {
+		
+		cardName.setText(name);
+		cardNumber.setText(number);
+		cardSecurity.setText(String.valueOf(code));
+		cardMonth.setMonth(expire.getMonthValue()-1);
+		cardYear.setYear(expire.getYear());
+		
+	}
+	
 	public CreditCard getCardFromFields() {
 		
 		String name = cardName.getText();
@@ -256,20 +272,40 @@ public class ReservationFormCard extends AbstractCard {
 		return nameText.getText();
 	}
 	
+	public void setGuestName(String name) {
+		nameText.setText(name);
+	}
+	
 	public String getGuestEmail() {
 		return emailText.getText();
+	}
+	
+	public void setGuestEmail(String email) {
+		emailText.setText(email);
 	}
 	
 	public ReservationType getReservationType() {
 		return ReservationType.values()[dropDown.getSelectedIndex()];
 	}
 	
+	public void setReservationType(ReservationType type) {
+		dropDown.setSelectedItem(type);
+	}
+	
 	public int getDays() {
 		return (int)weekOptions.getValue();
 	}
 	
+	public void setDays(int days) {
+		weekOptions.setValue(days);
+	}
+	
 	public LocalDate getReservationDate() {
 		return dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	}
+	
+	public void setReservationDate(LocalDate date) {
+		dateChooser.setDate(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 	}
 	
 	public void showError(ReservationException except) {
