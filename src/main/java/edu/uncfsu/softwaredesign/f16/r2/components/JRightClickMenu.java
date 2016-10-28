@@ -6,7 +6,7 @@ import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import org.assertj.core.util.Lists;
+import com.google.common.collect.Lists;
 
 public class JRightClickMenu extends JPopupMenu {
 

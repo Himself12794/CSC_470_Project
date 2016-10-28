@@ -70,10 +70,23 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		reservationTable.addMouseListener(new MouseAdapter(){
 			
 			public void mousePressed(MouseEvent e) {
-				int row = reservationTable.getSelectedRow();
-				if (row > -1) {
-					JPopupMenu p = new JReservationPopup(reserve.get(row));
-					p.show(reservationTable, e.getX(), e.getY());
+				
+				if (SwingUtilities.isRightMouseButton(e)) {
+					
+					int row = reservationTable.rowAtPoint(e.getPoint());
+					reservationTable.setRowSelectionInterval(row, row);
+				}
+				
+			}
+			
+			public void mouseReleased(MouseEvent e) {
+				
+				if (SwingUtilities.isRightMouseButton(e)) {
+					int row = reservationTable.getSelectedRow();
+					if (row > -1) {
+						JPopupMenu p = new JReservationPopup(reserve.get(row));
+						p.show(reservationTable, e.getX(), e.getY());
+					}
 				}
 			}
 			

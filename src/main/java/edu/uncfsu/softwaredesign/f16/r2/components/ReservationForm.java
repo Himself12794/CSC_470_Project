@@ -31,46 +31,41 @@ import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
 import edu.uncfsu.softwaredesign.f16.r2.GenericWorker;
-import edu.uncfsu.softwaredesign.f16.r2.components.card.ReservationFormCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
-import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry.ReservationBuilder;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationType;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationRegistryFullException;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 
-public class ReservationForm extends JPanel{
+public abstract class ReservationForm extends JPanel {
 	
 	private static final long serialVersionUID 	= 5652047994860330697L;
-	private static final Logger LOGGER 			= LoggerFactory.getLogger(ReservationFormCard.class.getSimpleName());	
+	private static final Logger LOGGER 			= LoggerFactory.getLogger(ReservationForm.class.getSimpleName());	
 	
 	public static final String TITLE 			= "RegistrationFormPage";
 	
-	private final JTextField nameText 					= new JTextField();
-	private final JTextField emailText 					= new JTextField();
-	private final JTextField cardNumber					= new JTextField();
-	private final JTextField cardName 					= new JTextField();
-	private final JTextField cardSecurity				= new JTextField();
-	private final JTextField totalCost					= new JTextField();
-	private final JMonthChooser cardMonth				= new JMonthChooser();
-	private final JYearChooser cardYear					= new JYearChooser();
-	private final SpinnerModel weekModel 				= new SpinnerNumberModel(1, 1, 7, 1);
-	private final JSpinner weekOptions					= new JSpinner(weekModel);
-	private final JButton calculateButton				= new JButton("Calculate");
-	private final JButton submitButton					= new JButton("Submit");
-	private final JDateChooser dateChooser 				= new JDateChooser();
-	private final JComboBox<ReservationType> dropDown 	= new JComboBox<>(ReservationType.values());
-	private final JCheckBox isPaid						= new JCheckBox("Has Paid");
-	private final JCheckBox isCancelled					= new JCheckBox("Is Active");
-	private final JPanel imageHeader					= new JImagePanel("img/generic.png");
-
-	private final ReservationRegistry reservationRegistry;
+	protected final JTextField nameText 				= new JTextField();
+	protected final JTextField emailText 				= new JTextField();
+	protected final JTextField cardNumber				= new JTextField();
+	protected final JTextField cardName 				= new JTextField();
+	protected final JTextField cardSecurity				= new JTextField();
+	protected final JTextField totalCost				= new JTextField();
+	protected final JMonthChooser cardMonth				= new JMonthChooser();
+	protected final JYearChooser cardYear				= new JYearChooser();
+	protected final SpinnerModel weekModel 				= new SpinnerNumberModel(1, 1, 7, 1);
+	protected final JSpinner weekOptions				= new JSpinner(weekModel);
+	protected final JButton calculateButton				= new JButton("Calculate");
+	protected final JButton submitButton				= new JButton("Submit");
+	protected final JDateChooser dateChooser 			= new JDateChooser();
+	protected final JComboBox<ReservationType> dropDown = new JComboBox<>(ReservationType.values());
+	protected final JCheckBox isPaid					= new JCheckBox("Has Paid");
+	protected final JCheckBox isCancelled				= new JCheckBox("Is Active");
+	protected final JPanel imageHeader					= new JImagePanel("img/generic.png");
 	
-	private ReservationBuilder reservationBuilder = null;
-	private Reservation builtReservation = null;
-	private boolean isViewing = false;
+	protected final ReservationRegistry reservationRegistry;
+	protected boolean isViewing = false;
 	
 	public ReservationForm(ReservationRegistry reservationRegistry) {
 		this.reservationRegistry = reservationRegistry;
@@ -142,6 +137,7 @@ public class ReservationForm extends JPanel{
 		builder.add(totalCost, cc.xy(3, 21));
 		builder.add(calculateButton, cc.xy(7, 21));
 		builder.add(submitButton, cc.xy(11, 21));
+		
 		add(builder.getContainer());
 	}
 	
@@ -183,48 +179,14 @@ public class ReservationForm extends JPanel{
 	/**
 	 * Called when this form is submitted. Builds and returns the unregistered reservation.
 	 */
-	public Optional<Reservation> doSubmit() {
-		return Optional.ofNullable(builtReservation);
-	}
+	public abstract Optional<Reservation> doSubmit();
 	
 	/**
 	 * Called to calculate the price and validate the reservation.
 	 * 
 	 * @param e
 	 */
-	public void doCalculate() {
-		
-		LOGGER.info("Calculate button has been pressed");
-		
-		reservationBuilder = reservationRegistry.createReservationBuilder(ReservationType.values()[dropDown.getSelectedIndex()]);
-		
-		reservationBuilder.setDays(getDays())
-			.setName(getGuestName())
-			.setEmail(getGuestEmail())
-			.setPayment(getCardFromFields())
-			.setReservationDate(getReservationDate());
-		
-		if (isViewing && builtReservation != null) {
-			reservationBuilder.setRegistrationDate(builtReservation.getRegistrationDate());
-		}
-		
-		try {
-			
-			Reservation newerRes = reservationBuilder.createAndRegister(false);
-			totalCost.setText(String.format("$%.2f", builtReservation.getTotalCost()));
-			if (!newerRes.equals(builtReservation)) {
-				submitButton.setEnabled(true);
-				builtReservation = newerRes;
-			}
-			
-		} catch (ReservationException e1) {
-			
-			LOGGER.error("An error occured in attempting to create a reservation");
-			LOGGER.trace("Trace", e1);
-			showError(e1);
-		}
-		
-	}
+	public abstract void doCalculate();
 
 	public void setShowModifyOptions(boolean value) {
 		

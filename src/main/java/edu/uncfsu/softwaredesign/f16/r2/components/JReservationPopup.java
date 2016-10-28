@@ -14,12 +14,12 @@ public class JReservationPopup extends JRightClickMenu {
 		super();
 		
 		reservation = reserve;
-		addMenuItem("Modify", e -> {
-			new ModifyReservation(reserve).setVisible(true);
+		addMenuItem("Modify Reservation", e -> {
+			new ModifyReservationWindow(reserve).setVisible(true);
 		});
 		
-		addMenuItem("Cancel", e -> {
-			ModifyReservation mod = new ModifyReservation(reserve);
+		addMenuItem("Cancel Reservation", e -> {
+			ModifyReservationWindow mod = new ModifyReservationWindow(reserve);
 			
 			SwingUtilities.invokeLater(mod::cancel);
 		});
