@@ -50,12 +50,10 @@ public class ModifyReservationWindow extends JDialog {
 	}
 	
 	public void cancel() {
-		//System.out.println(JOptionPane.showConfirmDialog(this, "Are you sure you want to cancel this?"));
-		confirmDialog("cancel reservation #"+ reservation.getReservationId());
-		
-		JOptionPane.showMessageDialog(this, "Reservation #" + reservation.getReservationId() + " has been canceled", "Canceled", JOptionPane.INFORMATION_MESSAGE);
-		
-		dispose();
+		if (confirmDialog("cancel reservation #"+ reservation.getReservationId())) {
+			JOptionPane.showMessageDialog(this, "Reservation #" + reservation.getReservationId() + " has been canceled", "Canceled", JOptionPane.INFORMATION_MESSAGE);
+			dispose();
+		}
 	}
 	
 	public boolean confirmDialog(String message) {

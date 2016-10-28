@@ -8,7 +8,7 @@ import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 
 /**
  * Object representing a reservation. To ensure consistent ids, only the
- * ReservationRegistry will be allowed to create them. 
+ * ReservationRegistry will be allowed to create them.
  * 
  * @author phwhitin
  *
@@ -21,10 +21,11 @@ public final class Reservation {
 	private LocalDate reservationDate;
 	private int days;
 	private CreditCard creditCard;
-	
+
 	ReservationType theType;
 	long reservationId;
 	boolean hasPaid = false;
+	boolean canceled = false;
 	float totalCost;
 
 	Reservation(long reservationId, String customer, String email, LocalDate registrationDate,
@@ -72,9 +73,9 @@ public final class Reservation {
 
 	}
 
-	public float calculateCost(CostRegistry costs, ReservationRegistry registry)  {
-		
-		float[] total = {0.0F}; 
+	public float calculateCost(CostRegistry costs, ReservationRegistry registry) {
+
+		float[] total = { 0.0F };
 		Utils.dateStream(this).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
 		if (getReservationDate().isBefore(getRegistrationDate().plusDays(30))) {
 			if (registry.averageOccupancyForRange(getRegistrationDate(), getDays()) / registry.getMaxRooms() <= 0.6F) {
@@ -83,7 +84,7 @@ public final class Reservation {
 		}
 
 		setTotalCost(total[0]);
-		
+
 		return total[0];
 	}
 
@@ -163,16 +164,24 @@ public final class Reservation {
 		return theType.costModifier;
 	}
 
+	public void setCanceled(boolean value) {
+		canceled = value;
+	}
+
+	public boolean isCanceled() {
+		return canceled;
+	}
+
 	/**
-	 * The only reason it is created this way is to have metadata about reservations without needing to 
-	 * create a new instance.
+	 * The only reason it is created this way is to have metadata about
+	 * reservations without needing to create a new instance.
 	 * 
 	 * @return
 	 */
 	public ReservationType getType() {
 		return theType;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -183,6 +192,7 @@ public final class Reservation {
 		result = prime * result + ((customer == null) ? 0 : customer.hashCode());
 		result = prime * result + days;
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
+		result = prime * result + (canceled ? 1231 : 1237);
 		result = prime * result + (hasPaid ? 1231 : 1237);
 		result = prime * result + ((registrationDate == null) ? 0 : registrationDate.hashCode());
 		result = prime * result + ((reservationDate == null) ? 0 : reservationDate.hashCode());
@@ -201,6 +211,8 @@ public final class Reservation {
 		if (getClass() != obj.getClass())
 			return false;
 		Reservation other = (Reservation) obj;
+		if (canceled != other.canceled)
+			return false;
 		if (Float.floatToIntBits(getChangeFeeModifier()) != Float.floatToIntBits(other.getChangeFeeModifier()))
 			return false;
 		if (Float.floatToIntBits(getCostModifier()) != Float.floatToIntBits(other.getCostModifier()))
@@ -245,7 +257,7 @@ public final class Reservation {
 
 	@Override
 	public String toString() {
-		return "Reservation [changeFeeModifier=" + getChangeFeeModifier() + ", costModifier="
+		return "Reservation [canceled=" + canceled + ", changeFeeModifier=" + getChangeFeeModifier() + ", costModifier="
 				+ getCostModifier() + ", customer=" + customer + ", email=" + email + ", registrationDate="
 				+ registrationDate + ", reservationDate=" + reservationDate + ", days=" + days + ", creditCard="
 				+ creditCard + ", reservationId=" + reservationId + ", hasPaid=" + hasPaid + ", totalCost=" + totalCost

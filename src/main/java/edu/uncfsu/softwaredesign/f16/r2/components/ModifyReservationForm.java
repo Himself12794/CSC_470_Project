@@ -17,6 +17,8 @@ public class ModifyReservationForm extends ReservationForm {
 	
 	public ModifyReservationForm(ReservationRegistry reservationRegistry) {
 		super(reservationRegistry);
+		dropDown.setEnabled(false);
+		isViewing = false;
 	}
 	
 	@Override

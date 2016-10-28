@@ -66,11 +66,10 @@ public abstract class ReservationForm extends JPanel {
 	protected final JPanel imageHeader					= new JImagePanel("img/generic.png");
 	
 	protected final ReservationRegistry reservationRegistry;
-	protected boolean isViewing = false;
+	protected boolean isViewing = true;
 	
 	public ReservationForm(ReservationRegistry reservationRegistry) {
 		this.reservationRegistry = reservationRegistry;
-		//setLayout(new MigLayout());
 		setPreferredSize(new Dimension(800, 600));
 		buildComponent();
 	}
