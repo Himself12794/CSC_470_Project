@@ -1,6 +1,5 @@
 package edu.uncfsu.softwaredesign.f16.r2.components;
 
-
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -8,14 +7,12 @@ import org.slf4j.LoggerFactory;
 
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
-import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry.ReservationBuilder;
 
 public class ModifyReservationForm extends ReservationForm {
 
 	private static final Logger LOGGER 			= LoggerFactory.getLogger(ModifyReservationForm.class.getSimpleName());	
 	private static final long serialVersionUID 	= 5719287999405904497L;
 
-	private ReservationBuilder reservationBuilder = null;
 	private Reservation builtReservation = null;
 	
 	public ModifyReservationForm(ReservationRegistry reservationRegistry) {
@@ -23,15 +20,24 @@ public class ModifyReservationForm extends ReservationForm {
 	}
 	
 	@Override
-	public Optional<Reservation> doSubmit() {
+	public Optional<Reservation> doConfirm() {
 		return Optional.ofNullable(builtReservation);
 	}
 
 	@Override
-	public void doCalculate() {
+	public void doCheck() {
 		
-		LOGGER.info("Calculate button has been pressed");
-
+		if (builtReservation != null) {
+			builtReservation.setCustomer(getGuestName());
+			builtReservation.setEmail(getGuestEmail());
+			
+			if (builtReservation.getDays() != getDays() || !builtReservation.getReservationDate().equals(getReservationDate())) {
+				float newCost = reservationRegistry.updateReservation(builtReservation, getReservationDate(), getDays());
+				totalCost.setText(String.valueOf(newCost));
+			}
+			
+		}
+		
 	}
 
 }

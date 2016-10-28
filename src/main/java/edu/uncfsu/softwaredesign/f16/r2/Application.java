@@ -24,7 +24,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import edu.uncfsu.softwaredesign.f16.r2.components.JImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.CardRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
-import edu.uncfsu.softwaredesign.f16.r2.components.card.ReservationFormCard;
+import edu.uncfsu.softwaredesign.f16.r2.components.card.RegisterReservationCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.util.MenuBuilder;
 
@@ -123,7 +123,7 @@ public class Application extends JFrame {
 			app.buildComponentCards();
 			app.buildLayouts();
 			app.buildMenus();
-			app.setCurrentCard(ReservationFormCard.TITLE);
+			app.setCurrentCard(RegisterReservationCard.TITLE);
 			app.setVisible(true);
 			
 		});

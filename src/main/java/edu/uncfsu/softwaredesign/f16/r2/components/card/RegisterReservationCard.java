@@ -44,10 +44,10 @@ import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 import net.miginfocom.swing.MigLayout;
 
 @Component
-public class ReservationFormCard extends AbstractCard {
+public class RegisterReservationCard extends AbstractCard {
 
 	private static final long serialVersionUID 	= 5652047994860330697L;
-	private static final Logger LOGGER 			= LoggerFactory.getLogger(ReservationFormCard.class.getSimpleName());	
+	private static final Logger LOGGER 			= LoggerFactory.getLogger(RegisterReservationCard.class.getSimpleName());	
 	
 	public static final String TITLE 			= "RegistrationFormPage";
 	
@@ -74,7 +74,7 @@ public class ReservationFormCard extends AbstractCard {
 	@Autowired
 	private ReservationRegistry reservationRegistry;
 	
-	public ReservationFormCard() {
+	public RegisterReservationCard() {
 		super(TITLE);
 		setLayout(new MigLayout());
 		

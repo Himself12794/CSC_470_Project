@@ -56,8 +56,8 @@ public abstract class ReservationForm extends JPanel {
 	protected final JYearChooser cardYear				= new JYearChooser();
 	protected final SpinnerModel weekModel 				= new SpinnerNumberModel(1, 1, 7, 1);
 	protected final JSpinner weekOptions				= new JSpinner(weekModel);
-	protected final JButton calculateButton				= new JButton("Calculate");
-	protected final JButton submitButton				= new JButton("Submit");
+	protected final JButton checkButton					= new JButton("Check");
+	protected final JButton confirmButton				= new JButton("Confirm");
 	protected final JDateChooser dateChooser 			= new JDateChooser();
 	protected final JComboBox<ReservationType> dropDown = new JComboBox<>(ReservationType.values());
 	protected final JCheckBox isPaid					= new JCheckBox("Has Paid");
@@ -75,9 +75,9 @@ public abstract class ReservationForm extends JPanel {
 	public void buildSubComponents() {
 
 		dropDown.addActionListener(this::doTypeValidation);
-		submitButton.addActionListener(a -> new GenericWorker(this::doSubmit).execute());
-		submitButton.setToolTipText("Click to register reservation");
-		calculateButton.addActionListener(a -> new GenericWorker(this::doCalculate).execute());
+		confirmButton.addActionListener(a -> new GenericWorker(this::doConfirm).execute());
+		confirmButton.setToolTipText("Click to register reservation");
+		checkButton.addActionListener(a -> new GenericWorker(this::doCheck).execute());
 		cardSecurity.setDocument(new JTextFieldLimit(3));
 		cardNumber.setDocument(new JTextFieldLimit(19));
 		cardYear.setMinimum(LocalDate.now().getYear());
@@ -135,15 +135,15 @@ public abstract class ReservationForm extends JPanel {
 		builder.addSeparator("Confirmation", cc.xyw(1, 19, 11));
 		builder.addLabel("Total Cost", cc.xy(1, 21));
 		builder.add(totalCost, cc.xy(3, 21));
-		builder.add(calculateButton, cc.xy(7, 21));
-		builder.add(submitButton, cc.xy(11, 21));
+		builder.add(checkButton, cc.xy(7, 21));
+		builder.add(confirmButton, cc.xy(11, 21));
 		
 		add(builder.getContainer());
 	}
 	
 	public void reload() {
 		doTypeValidation(null);
-		submitButton.setEnabled(false);
+		confirmButton.setEnabled(false);
 	}
 	
 	/**
@@ -174,20 +174,26 @@ public abstract class ReservationForm extends JPanel {
 		cardSecurity.setEditable(type.isPrepaid);
 	}
 	
-
-	
 	/**
-	 * Called when this form is submitted. Builds and returns the unregistered reservation.
+	 * This should generate a reservation from the fields.
 	 */
-	public abstract Optional<Reservation> doSubmit();
+	public abstract Optional<Reservation> doConfirm();
+	
+	public void setConfirmButtonEnabled(boolean value) {
+		confirmButton.setEnabled(value);
+	}
 	
 	/**
-	 * Called to calculate the price and validate the reservation.
+	 * This should verify the form data.
 	 * 
 	 * @param e
 	 */
-	public abstract void doCalculate();
+	public abstract void doCheck();
 
+	public void setCheckButtonEnabled(boolean value) {
+		checkButton.setEnabled(value);
+	}
+	
 	public void setShowModifyOptions(boolean value) {
 		
 		isPaid.setVisible(value);
@@ -203,7 +209,7 @@ public abstract class ReservationForm extends JPanel {
 		setReservationType(reservation.getType());
 		setDays(reservation.getDays());
 		setReservationDate(reservation.getReservationDate());
-		doCalculate();
+		doCheck();
 	}
 	
 	public void setCardForFields(CreditCard card) {

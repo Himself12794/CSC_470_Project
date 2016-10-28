@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
+import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 
 /**
  * Object representing a reservation. To ensure consistent ids, only the
@@ -12,14 +13,7 @@ import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
  * @author phwhitin
  *
  */
-public abstract class Reservation {
-
-	// @Id
-	// private ObjectId id;
-
-	private final boolean canChange;
-	private final float changeFeeModifier;
-	private final float costModifier;
+public final class Reservation {
 
 	private String customer;
 	private String email;
@@ -34,21 +28,18 @@ public abstract class Reservation {
 	float totalCost;
 
 	Reservation(long reservationId, String customer, String email, LocalDate registrationDate,
-			LocalDate reservationDate, int days, boolean hasPaid, CostRegistry costs, boolean canChange,
-			float changeFeeModifier, float costModifier, CreditCard card, ReservationType type) {
+			LocalDate reservationDate, int days, CostRegistry costs, ReservationRegistry registry,
+			float changeFeeModifier, CreditCard card, ReservationType type) {
 		this.reservationId = reservationId;
 		this.customer = customer;
 		this.email = email;
 		this.registrationDate = registrationDate;
 		this.reservationDate = reservationDate;
 		this.days = days;
-		this.canChange = canChange;
-		this.changeFeeModifier = changeFeeModifier;
-		this.costModifier = costModifier;
 		this.creditCard = card;
 		this.theType = type;
 
-		calculateCost(costs);
+		calculateCost(costs, registry);
 	}
 
 	public String getEmail() {
@@ -68,7 +59,7 @@ public abstract class Reservation {
 	}
 
 	public float getChangeFeeModifier() {
-		return changeFeeModifier;
+		return theType.changeFee;
 	}
 
 	public void markPaid() {
@@ -81,7 +72,20 @@ public abstract class Reservation {
 
 	}
 
-	abstract float calculateCost(CostRegistry costs);
+	public float calculateCost(CostRegistry costs, ReservationRegistry registry)  {
+		
+		float[] total = {0.0F}; 
+		Utils.dateStream(this).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
+		if (getReservationDate().isBefore(getRegistrationDate().plusDays(30))) {
+			if (registry.averageOccupancyForRange(getRegistrationDate(), getDays()) / registry.getMaxRooms() <= 0.6F) {
+				total[0] *= 0.8F;
+			}
+		}
+
+		setTotalCost(total[0]);
+		
+		return total[0];
+	}
 
 	/**
 	 * Gets the updated cost and returns the change in amount owed.
@@ -90,14 +94,15 @@ public abstract class Reservation {
 	 * @param cost
 	 * @return
 	 */
-	public float updateCost(LocalDate date, CostRegistry cost) {
+	float updateCost(LocalDate date, int days, ReservationRegistry registry, CostRegistry cost) {
 
 		float prevCost = totalCost, newCost;
 
 		setReservationDate(date);
-		newCost = calculateCost(cost);
+		setDays(days);
+		newCost = calculateCost(cost, registry);
 
-		newCost *= changeFeeModifier;
+		newCost *= getChangeFeeModifier();
 
 		return newCost > prevCost ? newCost - prevCost : 0.0F;
 	}
@@ -110,7 +115,7 @@ public abstract class Reservation {
 		return customer;
 	}
 
-	void setCustomer(String customer) {
+	public void setCustomer(String customer) {
 		this.customer = customer;
 	}
 
@@ -142,7 +147,7 @@ public abstract class Reservation {
 		return hasPaid;
 	}
 
-	void setHasPaid(boolean hasPaid) {
+	public void setHasPaid(boolean hasPaid) {
 		this.hasPaid = hasPaid;
 	}
 
@@ -154,12 +159,8 @@ public abstract class Reservation {
 		this.totalCost = totalCost;
 	}
 
-	public boolean getCanChange() {
-		return canChange;
-	}
-
 	public float getCostModifier() {
-		return costModifier;
+		return theType.costModifier;
 	}
 
 	/**
@@ -176,9 +177,8 @@ public abstract class Reservation {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (canChange ? 1231 : 1237);
-		result = prime * result + Float.floatToIntBits(changeFeeModifier);
-		result = prime * result + Float.floatToIntBits(costModifier);
+		result = prime * result + Float.floatToIntBits(getChangeFeeModifier());
+		result = prime * result + Float.floatToIntBits(getCostModifier());
 		result = prime * result + ((creditCard == null) ? 0 : creditCard.hashCode());
 		result = prime * result + ((customer == null) ? 0 : customer.hashCode());
 		result = prime * result + days;
@@ -201,11 +201,9 @@ public abstract class Reservation {
 		if (getClass() != obj.getClass())
 			return false;
 		Reservation other = (Reservation) obj;
-		if (canChange != other.canChange)
+		if (Float.floatToIntBits(getChangeFeeModifier()) != Float.floatToIntBits(other.getChangeFeeModifier()))
 			return false;
-		if (Float.floatToIntBits(changeFeeModifier) != Float.floatToIntBits(other.changeFeeModifier))
-			return false;
-		if (Float.floatToIntBits(costModifier) != Float.floatToIntBits(other.costModifier))
+		if (Float.floatToIntBits(getCostModifier()) != Float.floatToIntBits(other.getCostModifier()))
 			return false;
 		if (creditCard == null) {
 			if (other.creditCard != null)
@@ -247,8 +245,8 @@ public abstract class Reservation {
 
 	@Override
 	public String toString() {
-		return "Reservation [canChange=" + canChange + ", changeFeeModifier=" + changeFeeModifier + ", costModifier="
-				+ costModifier + ", customer=" + customer + ", email=" + email + ", registrationDate="
+		return "Reservation [changeFeeModifier=" + getChangeFeeModifier() + ", costModifier="
+				+ getCostModifier() + ", customer=" + customer + ", email=" + email + ", registrationDate="
 				+ registrationDate + ", reservationDate=" + reservationDate + ", days=" + days + ", creditCard="
 				+ creditCard + ", reservationId=" + reservationId + ", hasPaid=" + hasPaid + ", totalCost=" + totalCost
 				+ "]";

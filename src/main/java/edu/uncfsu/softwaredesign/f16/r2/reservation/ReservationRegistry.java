@@ -160,6 +160,15 @@ public class ReservationRegistry implements Reportable {
 		return (float)Utils.dateStream(startDate, days).mapToInt(d -> getReservationsForDate(d).size()).average().orElse(0.0);
 	}
 	
+
+	public int getMaxRooms() {
+		return MAX_ROOMS;
+	}
+	
+	public float updateReservation(Reservation reserver, LocalDate date, int days) {
+		return reserver.updateCost(date, days, ReservationRegistry.this, costRegistry);
+	}
+	
 	/**
 	 * Used to build a reservation
 	 * 
@@ -263,25 +272,7 @@ public class ReservationRegistry implements Reportable {
 			
 			errorCheck();
 			
-			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, false, costRegistry, false, type.changeFee, type.costModifier, card, type) {
-
-				@Override
-				float calculateCost(CostRegistry costs)  {
-					
-					float[] total = {0.0F}; 
-					Utils.dateStream(this).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
-					if (getReservationDate().isBefore(getRegistrationDate().plusDays(30))) {
-						if (averageOccupancyForRange(getRegistrationDate(), getDays()) / MAX_ROOMS <= 0.6F) {
-							total[0] *= 0.8F;
-						}
-					}
-
-					setTotalCost(total[0]);
-					
-					return total[0];
-				}
-				
-			};
+			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, costRegistry, ReservationRegistry.this, type.changeFee, card, type);
 			
 			if (register) registerReservation(reserve);
 			
