@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import edu.uncfsu.softwaredesign.f16.r2.Application;
+import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 
 public class ModifyReservationWindow extends JDialog {
@@ -17,12 +18,13 @@ public class ModifyReservationWindow extends JDialog {
 	public static final String TITLE = "Modify Reservation #";
 	
 	private final ReservationForm theForm;
-	
+	private final IApplicationCard parent;
 	private final Reservation reservation;
 	
-	public ModifyReservationWindow(Reservation reservation) {
+	public ModifyReservationWindow(IApplicationCard parent, Reservation reservation) {
 		super(Application.getApp(), true);
 		this.reservation = reservation;
+		this.parent = parent;
 		
 		setTitle(TITLE + reservation.getReservationId());
 		setSize(600, 500);
@@ -30,7 +32,7 @@ public class ModifyReservationWindow extends JDialog {
 		setLocationRelativeTo(Application.getApp());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		
-		theForm = new ModifyReservationForm(Application.getApp().getReservationRegistry());
+		theForm = new ModifyReservationForm(this, Application.getApp().getReservationRegistry());
 		theForm.setReservation(reservation);
 		
 		addWindowListener(new WindowAdapter() {
@@ -43,6 +45,11 @@ public class ModifyReservationWindow extends JDialog {
 		});
 		
 		buildLayout();
+	}
+	
+	public void close() {
+		dispose();
+		parent.reload();
 	}
 	
 	public void buildLayout() {

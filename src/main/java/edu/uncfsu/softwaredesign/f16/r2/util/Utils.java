@@ -66,7 +66,7 @@ public final class Utils {
 	
 	public static String createErrorMessageForFullRegistry(List<LocalDate> dates) {
 		
-		StringBuilder builder = new StringBuilder("Could not register reservation, the following days are full: ");
+		StringBuilder builder = new StringBuilder("Could not register/update reservation, the following days are full: ");
 		
 		dates.forEach(d -> builder.append(d).append(", "));
 		

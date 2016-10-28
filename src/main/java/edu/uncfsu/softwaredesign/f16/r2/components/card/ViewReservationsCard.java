@@ -67,6 +67,7 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		});
 		reservationTable.getTableHeader().setReorderingAllowed(false);
 		reservationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
 		reservationTable.addMouseListener(new MouseAdapter(){
 			
 			public void mousePressed(MouseEvent e) {
@@ -84,7 +85,7 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 				if (SwingUtilities.isRightMouseButton(e)) {
 					int row = reservationTable.getSelectedRow();
 					if (row > -1) {
-						JPopupMenu p = new JReservationPopup(reserve.get(row));
+						JPopupMenu p = new JReservationPopup(ViewReservationsCard.this, reserve.get(row));
 						p.show(reservationTable, e.getX(), e.getY());
 					}
 				}
@@ -129,9 +130,6 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		SwingUtilities.invokeLater(() -> {
 			revalidate();
 			repaint();
-			
-			//new ModifyReservation(theApp, reservationRegistry.getReservations().get(0)).setVisible(true);
-			
 		});
 	}
 	

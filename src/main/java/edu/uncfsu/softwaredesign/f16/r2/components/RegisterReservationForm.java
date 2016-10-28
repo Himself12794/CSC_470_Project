@@ -21,6 +21,9 @@ public class RegisterReservationForm extends ReservationForm {
 	
 	public RegisterReservationForm(ReservationRegistry reservationRegistry) {
 		super(reservationRegistry);
+		isViewing = false;
+		doTypeValidation(null);
+		confirmButton.setEnabled(false);
 	}
 	
 	/**
@@ -49,9 +52,10 @@ public class RegisterReservationForm extends ReservationForm {
 	 * @param e
 	 */
 	@Override
-	public void doCheck() {
-		ReservationBuilder reservationBuilder = reservationRegistry.createReservationBuilder(ReservationType.values()[dropDown.getSelectedIndex()]);
+	public boolean doCheck() {
 		
+		ReservationBuilder reservationBuilder = reservationRegistry.createReservationBuilder(ReservationType.values()[dropDown.getSelectedIndex()]);
+
 		reservationBuilder.setDays(getDays())
 			.setName(getGuestName())
 			.setEmail(getGuestEmail())
@@ -62,6 +66,8 @@ public class RegisterReservationForm extends ReservationForm {
 			
 			builtReservation = reservationBuilder.createAndRegister(false);
 			confirmButton.setEnabled(true);
+			totalCost.setText(String.format("$%.2f", builtReservation.getTotalCost()));
+			return true;
 			
 		} catch (ReservationException e1) {
 			
@@ -70,5 +76,6 @@ public class RegisterReservationForm extends ReservationForm {
 			showError(e1);
 		}
 		
+		return false;
 	}
 }

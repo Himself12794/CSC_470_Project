@@ -13,6 +13,7 @@ import java.util.Optional;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -31,7 +32,6 @@ import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
-import edu.uncfsu.softwaredesign.f16.r2.GenericWorker;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationType;
@@ -53,20 +53,26 @@ public abstract class ReservationForm extends JPanel {
 	protected final JTextField cardName 				= new JTextField();
 	protected final JTextField cardSecurity				= new JTextField();
 	protected final JTextField totalCost				= new JTextField();
+	
 	protected final JMonthChooser cardMonth				= new JMonthChooser();
 	protected final JYearChooser cardYear				= new JYearChooser();
 	protected final SpinnerModel weekModel 				= new SpinnerNumberModel(1, 1, 7, 1);
 	protected final JSpinner weekOptions				= new JSpinner(weekModel);
+	protected final JDateChooser dateChooser 			= new JDateChooser();
+	
 	protected final JButton checkButton					= new JButton("Check");
 	protected final JButton confirmButton				= new JButton("Confirm");
-	protected final JDateChooser dateChooser 			= new JDateChooser();
 	protected final JComboBox<ReservationType> dropDown = new JComboBox<>(ReservationType.values());
 	protected final JCheckBox isPaid					= new JCheckBox("Has Paid");
 	protected final JCheckBox isCancelled				= new JCheckBox("Is Active");
 	protected final JPanel imageHeader					= new JImagePanel("img/generic.png");
 	
+	protected final JLabel totalCostLabel				= new JLabel("Total Cost");
+	
 	protected final ReservationRegistry reservationRegistry;
+	
 	protected boolean isViewing = true;
+	protected Reservation builtReservation = null;
 	
 	public ReservationForm(ReservationRegistry reservationRegistry) {
 		this.reservationRegistry = reservationRegistry;
@@ -77,9 +83,9 @@ public abstract class ReservationForm extends JPanel {
 	public void buildSubComponents() {
 
 		dropDown.addActionListener(this::doTypeValidation);
-		confirmButton.addActionListener(a -> new GenericWorker(this::doConfirm).execute());
+		confirmButton.addActionListener(a -> doConfirm());
 		confirmButton.setToolTipText("Click to register reservation");
-		checkButton.addActionListener(a -> new GenericWorker(this::doCheck).execute());
+		checkButton.addActionListener(a -> doCheck());
 		cardSecurity.setDocument(new JTextFieldLimit(3));
 		cardNumber.setDocument(new JTextFieldLimit(19));
 		cardYear.setMinimum(LocalDate.now().getYear());
@@ -133,7 +139,7 @@ public abstract class ReservationForm extends JPanel {
 		builder.add(cardYear, cc.xy(11, 17));
 		
 		builder.addSeparator("Confirmation", cc.xyw(1, 19, 11));
-		builder.addLabel("Total Cost", cc.xy(1, 21));
+		builder.add(totalCostLabel, cc.xy(1, 21));
 		builder.add(totalCost, cc.xy(3, 21));
 		builder.add(checkButton, cc.xy(7, 21));
 		builder.add(confirmButton, cc.xy(11, 21));
@@ -184,7 +190,7 @@ public abstract class ReservationForm extends JPanel {
 	 * 
 	 * @param e
 	 */
-	public abstract void doCheck();
+	public abstract boolean doCheck();
 
 	public void setShowModifyOptions(boolean value) {
 		
@@ -201,11 +207,14 @@ public abstract class ReservationForm extends JPanel {
 		setReservationType(reservation.getType());
 		setDays(reservation.getDays());
 		setReservationDate(reservation.getReservationDate());
+		totalCost.setText(String.format("$%.2f", reservation.getTotalCost()));
+		builtReservation = reservation;
+		
 		doCheck();
 	}
 	
-	public void setCardForFields(CreditCard card) {
-		if (card != null) setCardForFields(card.getNameOnCard(), card.getCardNumber(), card.getSecurityCode(), card.getExpirationDate());	
+	public void setCardForFields(Optional<CreditCard> optional) {
+		optional.ifPresent(c -> setCardForFields(c.getNameOnCard(), c.getCardNumber(), c.getSecurityCode(), c.getExpirationDate()));	
 	}
 	
 	public void setCardForFields(String name, String number, short code, YearMonth expire) {
@@ -268,6 +277,11 @@ public abstract class ReservationForm extends JPanel {
 		dateChooser.setDate(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 	}
 	
+	/**
+	 * Uses a popup to display this message as an error.
+	 * 
+	 * @param except
+	 */
 	public void showError(ReservationException except) {
 		if (except instanceof ReservationRegistryFullException) {
 			Utils.generateErrorMessage(WordUtils.wrap(except.getMessage(), 60), "Registry Full");

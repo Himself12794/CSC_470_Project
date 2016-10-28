@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -105,7 +106,7 @@ public class ReservationRegistry implements Reportable {
 	 */
 	public void registerReservation(Reservation reserve) throws ReservationRegistryFullException {
 		
-		Optional<List<LocalDate>> conflicts = getConflicts(reserve);
+		Optional<List<LocalDate>> conflicts = getConflicts(reserve.getReservationDate(), reserve.getDays());
 		
 		if (conflicts.isPresent()) {
 			throw new ReservationRegistryFullException(reserve, conflicts.get());
@@ -132,12 +133,25 @@ public class ReservationRegistry implements Reportable {
 	 * @return a list of the full days, or None if no conflicts
 	 * 
 	 */
-	public Optional<List<LocalDate>> getConflicts(Reservation reserve) {
+	public Optional<List<LocalDate>> getConflicts(LocalDate date, int days) {
+		return getConflicts(-1, date, days);
+	}
+	
+	/**
+	 * Gets conflicts for a certain day, ignoring reservations with the specific type.
+	 * This is useful for modifying a reservation.
+	 * 
+	 * @param id
+	 * @param date
+	 * @param days
+	 * @return
+	 */
+	public Optional<List<LocalDate>> getConflicts(long id, LocalDate date, int days) {
 		
 		List<LocalDate> conflicts = Lists.newArrayList();
 		
-		Utils.dateStream(reserve)
-			.filter(d -> getReservationsForDate(d).size() >= MAX_ROOMS)
+		Utils.dateStream(date, days)
+			.filter(d -> getReservationsForDate(d).stream().filter(c -> c.reservationId == id).toArray().length >= MAX_ROOMS)
 			.forEach(conflicts::add);
 
 		return Optional.ofNullable(conflicts.isEmpty() ? null : conflicts);
@@ -164,9 +178,34 @@ public class ReservationRegistry implements Reportable {
 	public int getMaxRooms() {
 		return MAX_ROOMS;
 	}
+
+	/**
+	 * Calculates the fee for changing a reservation. Optionally updates the entry.
+	 * 
+	 * @param reservation
+	 * @param date
+	 * @param days
+	 * @param update
+	 * @return
+	 */
+	public float calculateChangeFee(Reservation reservation, LocalDate date, int days, boolean update) {
+		
+		float newCost = reservation.calculateCost(date, days, costRegistry, this);
+		newCost *= reservation.theType.changeFee;
+		
+		if (update) {
+			float diff = reservation.updateCost(date, days, this, costRegistry);
+			if (reservation.getType().isPrepaid && diff > 0.0F) {
+				transactionController.charge(reservation.getCreditCard().get(), diff);
+			}
+		}
+		
+		return newCost;
+	}
 	
-	public float updateReservation(Reservation reserver, LocalDate date, int days) {
-		return reserver.updateCost(date, days, ReservationRegistry.this, costRegistry);
+	public void updateReservation(Reservation reservation) {
+		reservations.put(reservation.reservationId, reservation);
+		saveToDisk();
 	}
 	
 	/**
@@ -188,6 +227,7 @@ public class ReservationRegistry implements Reportable {
 		private boolean invalid = false;
 		
 		private ReservationBuilder(ReservationType type) throws NoSuchReservationTypeException {
+			System.out.println("new builder");
 			this.type = type;
 		}
 		
@@ -286,54 +326,6 @@ public class ReservationRegistry implements Reportable {
 		}
 		
 	}
-	
-	private Map<String, Object> reservationToMap(Reservation reserve) {
-		
-		Map<String, Object> values = Maps.newHashMap();
-		
-		values.put("id", reserve.reservationId);
-		values.put("guest", reserve.getCustomer());
-		values.put("email", reserve.getEmail());
-		values.put("hasPaid", reserve.isHasPaid());
-		values.put("registrationDate", reserve.getRegistrationDate());
-		values.put("reservationDate", reserve.getReservationDate());
-		values.put("days", reserve.getDays());
-		values.put("totalCost", reserve.getTotalCost());
-		values.put("creditCard", reserve.getCreditCard());
-		values.put("theType", reserve.theType);
-		
-		return values;
-	}
-	
-	private Reservation mapToReservation(Map<String, Object> values) {
-		
-		long id = (long)values.get("id");
-		String guest = (String)values.get("guest");
-		String email = (String)values.get("email");
-		boolean hasPaid = (boolean)values.get("hasPaid");
-		LocalDate registrationDate = (LocalDate)values.get("registrationDate");
-		LocalDate reservationDate = (LocalDate)values.get("reservationDate");
-		int days = (int)values.get("days");
-		float totalCost = (float)values.get("totalCost");
-		CreditCard creditCard = (CreditCard)values.get("creditCard");
-		ReservationType type = (ReservationType)values.get("theType");
-		
-		ReservationBuilder reserveBuilder = createReservationBuilder(type).setDays(days).setName(guest).setEmail(email);
-		reserveBuilder.card = creditCard;
-		reserveBuilder.registrationDate = registrationDate;
-		reserveBuilder.reservationDate = reservationDate;
-		Reservation reserve = null;
-		try {
-			reserve = reserveBuilder.createAndRegister(false);
-			reserve.hasPaid = hasPaid;
-			reserve.totalCost = totalCost;
-			reserve.reservationId = id;
-		} catch (ReservationException e) {
-			LOGGER.error("An unexpected error has occurred during object deserialization");
-		}
-		
-		return reserve;
-	}
 
 	void saveToDisk() {
 		
@@ -341,7 +333,7 @@ public class ReservationRegistry implements Reportable {
 
 			FileUtils.forceMkdir(saveFile.getParentFile());
 			
-			List<?> items = reservations.values().stream().map(this::reservationToMap).collect(Collectors.toList());
+			List<Reservation> items = Lists.newArrayList(reservations.values());
 			
 			FileOutputStream fos = new FileOutputStream(saveFile, false);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -366,12 +358,12 @@ public class ReservationRegistry implements Reportable {
 				
 				FileInputStream fis = new FileInputStream(saveFile);
 				ObjectInputStream ois = new ObjectInputStream(fis);
-				List<Map<String, Object>> items = (List<Map<String, Object>>) ois.readObject();
+				Collection<Reservation> items = (Collection<Reservation>) ois.readObject();
 				ois.close();
 				
 				reservations.clear();
 				
-				items.stream().map(this::mapToReservation).forEach(r -> reservations.put(r.reservationId, r));
+				items.stream().forEach(r -> reservations.put(r.reservationId, r));
 				
 			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();

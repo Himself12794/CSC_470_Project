@@ -1,6 +1,8 @@
 package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
+import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
@@ -13,8 +15,10 @@ import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
  * @author phwhitin
  *
  */
-public final class Reservation {
+public final class Reservation implements Serializable {
 
+	private static final long serialVersionUID = -2671231661896713449L;
+	
 	private String customer;
 	private String email;
 	private LocalDate registrationDate;
@@ -40,7 +44,7 @@ public final class Reservation {
 		this.creditCard = card;
 		this.theType = type;
 
-		calculateCost(costs, registry);
+		totalCost = calculateCost(reservationDate, days, costs, registry);
 	}
 
 	public String getEmail() {
@@ -51,8 +55,8 @@ public final class Reservation {
 		this.email = email;
 	}
 
-	public CreditCard getCreditCard() {
-		return creditCard;
+	public Optional<CreditCard> getCreditCard() {
+		return Optional.ofNullable(creditCard);
 	}
 
 	public void setCreditCard(CreditCard creditCard) {
@@ -73,17 +77,22 @@ public final class Reservation {
 
 	}
 
-	public float calculateCost(CostRegistry costs, ReservationRegistry registry) {
+	/**
+	 * Computes the cost for the current values, but does not update it.
+	 * 
+	 * @param costs
+	 * @param registry
+	 * @return
+	 */
+	public float calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry) {
 
 		float[] total = { 0.0F };
-		Utils.dateStream(this).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
+		Utils.dateStream(date, days).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
 		if (getReservationDate().isBefore(getRegistrationDate().plusDays(30))) {
 			if (registry.averageOccupancyForRange(getRegistrationDate(), getDays()) / registry.getMaxRooms() <= 0.6F) {
 				total[0] *= 0.8F;
 			}
 		}
-
-		setTotalCost(total[0]);
 
 		return total[0];
 	}
@@ -101,8 +110,9 @@ public final class Reservation {
 
 		setReservationDate(date);
 		setDays(days);
-		newCost = calculateCost(cost, registry);
-
+		newCost = calculateCost(date, days, cost, registry);
+		setTotalCost(newCost);
+		
 		newCost *= getChangeFeeModifier();
 
 		return newCost > prevCost ? newCost - prevCost : 0.0F;
@@ -263,5 +273,5 @@ public final class Reservation {
 				+ creditCard + ", reservationId=" + reservationId + ", hasPaid=" + hasPaid + ", totalCost=" + totalCost
 				+ "]";
 	}
-
+	
 }

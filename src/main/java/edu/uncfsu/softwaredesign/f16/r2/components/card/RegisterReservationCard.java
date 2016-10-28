@@ -21,7 +21,7 @@ public class RegisterReservationCard extends AbstractCard {
 	
 	public static final String TITLE 			= "RegistrationFormPage";
 
-	private final RegisterReservationForm registrationForm;
+	private RegisterReservationForm registrationForm;
 	
 	@Autowired
 	private ReservationRegistry reservationRegistry;
@@ -29,11 +29,11 @@ public class RegisterReservationCard extends AbstractCard {
 	public RegisterReservationCard() {
 		super(TITLE);
 		setLayout(new MigLayout());
-		registrationForm = new RegisterReservationForm(reservationRegistry);
 	}
 
 	@Override
 	public void buildComponent() {
+		registrationForm = new RegisterReservationForm(reservationRegistry);
 		add(registrationForm);
 	}
 	

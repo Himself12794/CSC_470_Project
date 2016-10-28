@@ -2,6 +2,7 @@ package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import javax.swing.SwingUtilities;
 
+import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 
 public class JReservationPopup extends JRightClickMenu {
@@ -10,16 +11,16 @@ public class JReservationPopup extends JRightClickMenu {
 	
 	private final Reservation reservation;
 	
-	public JReservationPopup(Reservation reserve) {
+	public JReservationPopup(IApplicationCard parent, Reservation reserve) {
 		super();
 		
 		reservation = reserve;
 		addMenuItem("Modify Reservation", e -> {
-			new ModifyReservationWindow(reserve).setVisible(true);
+			new ModifyReservationWindow(parent, reserve).setVisible(true);
 		});
 		
 		addMenuItem("Cancel Reservation", e -> {
-			ModifyReservationWindow mod = new ModifyReservationWindow(reserve);
+			ModifyReservationWindow mod = new ModifyReservationWindow(parent, reserve);
 			
 			SwingUtilities.invokeLater(mod::cancel);
 		});
