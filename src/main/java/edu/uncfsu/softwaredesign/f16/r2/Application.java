@@ -61,7 +61,7 @@ public class Application extends JFrame {
 			LOGGER.error("Using default");
 		}
 		setTitle(APP_NAME);
-		setSize(800, 600);
+		setSize(700, 600);
 		setIconImage(new JImagePanel("img/icon.png").getImage());
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

@@ -1,6 +1,7 @@
 package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.time.LocalDate;
 import java.time.Month;
@@ -69,6 +70,8 @@ public abstract class ReservationForm extends JPanel {
 	
 	public ReservationForm(ReservationRegistry reservationRegistry) {
 		this.reservationRegistry = reservationRegistry;
+		//setLayout(new MigLayout());
+		setPreferredSize(new Dimension(800, 600));
 		buildComponent();
 	}
 
@@ -117,8 +120,6 @@ public abstract class ReservationForm extends JPanel {
 		builder.add(dateChooser, cc.xy(7, 9));
 		builder.addLabel("Days", cc.xy(9, 9));
 		builder.add(weekOptions, cc.xy(11, 9));
-		//builder.addLabel("Days", cc.xy(1, 11));
-		//builder.add(weekOptions, cc.xy(3, 11));
 		
 		builder.addSeparator("Payment", cc.xyw(1, 13, 11));
 		builder.addLabel("Name on Card", cc.xy(1, 15));
@@ -179,10 +180,6 @@ public abstract class ReservationForm extends JPanel {
 	 */
 	public abstract Optional<Reservation> doConfirm();
 	
-	public void setConfirmButtonEnabled(boolean value) {
-		confirmButton.setEnabled(value);
-	}
-	
 	/**
 	 * This should verify the form data.
 	 * 
@@ -190,10 +187,6 @@ public abstract class ReservationForm extends JPanel {
 	 */
 	public abstract void doCheck();
 
-	public void setCheckButtonEnabled(boolean value) {
-		checkButton.setEnabled(value);
-	}
-	
 	public void setShowModifyOptions(boolean value) {
 		
 		isPaid.setVisible(value);
