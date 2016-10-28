@@ -1,12 +1,13 @@
 package edu.uncfsu.softwaredesign.f16.r2.components;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import edu.uncfsu.softwaredesign.f16.r2.Application;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 
-public class ModifyReservationWindow extends JFrame {
+public class ModifyReservationWindow extends JDialog {
 
 	private static final long serialVersionUID = 2726747745041753463L;
 
@@ -17,14 +18,18 @@ public class ModifyReservationWindow extends JFrame {
 	private final Reservation reservation;
 	
 	public ModifyReservationWindow(Reservation reservation) {
+		super(Application.getApp(), true);
 		this.reservation = reservation;
+		
 		setTitle(TITLE + reservation.getReservationId());
 		setSize(600, 500);
 		setIconImage(new JImagePanel("img/icon.png").getImage());
 		setLocationRelativeTo(Application.getApp());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
 		theForm = new ModifyReservationForm(Application.getApp().getReservationRegistry());
 		theForm.setReservation(reservation);
+		
 		buildLayout();
 	}
 	
