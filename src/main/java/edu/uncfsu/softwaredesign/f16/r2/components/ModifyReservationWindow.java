@@ -27,7 +27,7 @@ public class ModifyReservationWindow extends JDialog {
 		this.parent = parent;
 		
 		setTitle(TITLE + reservation.getReservationId());
-		setSize(600, 500);
+		setSize(1000, 500);
 		setIconImage(new JImagePanel("img/icon.png").getImage());
 		setLocationRelativeTo(Application.getApp());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

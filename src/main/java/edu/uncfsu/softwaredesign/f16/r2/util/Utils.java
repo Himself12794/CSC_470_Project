@@ -46,14 +46,16 @@ public final class Utils {
 	}
 	
 	public static boolean isInt(String text) {
-		
 		try {
 			Integer.valueOf(text);
 		} catch (NumberFormatException nfe) {
 			return false;
 		}
-		
 		return true;
+	}
+	
+	public static boolean isAlpha(String text) {
+		return text.length() == text.replaceAll("\\d", "").length();
 	}
 	
 	public static String createErrorMessageForInvalidValues(Map<String, Object> values) {

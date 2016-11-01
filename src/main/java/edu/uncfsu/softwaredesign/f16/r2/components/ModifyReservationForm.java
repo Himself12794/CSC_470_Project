@@ -58,7 +58,7 @@ public class ModifyReservationForm extends ReservationForm {
 				if (!conflicts.isPresent()) {
 					float newCost = reservationRegistry.calculateChangeFee(builtReservation, getReservationDate(), getDays(), false);
 					totalCostLabel.setText("Change in cost");
-					totalCost.setText(String.format("+%d", newCost));
+					totalCost.setText(String.format("+$%.2f", newCost));
 					canUpdate |= true;
 				} else {
 					showError(new ReservationRegistryFullException(builtReservation, conflicts.get()));
