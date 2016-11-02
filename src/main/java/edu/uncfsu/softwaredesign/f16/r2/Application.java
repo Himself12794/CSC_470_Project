@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 
 import edu.uncfsu.softwaredesign.f16.r2.components.JImagePanel;
+import edu.uncfsu.softwaredesign.f16.r2.components.OpeningImage;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.CardRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.RegisterReservationCard;
@@ -116,7 +117,11 @@ public class Application extends JFrame {
 	
 	public static void main(String[] args) {
 		
+		OpeningImage open = new OpeningImage();
+		open.setVisible(true);
+		
 		SwingUtilities.invokeLater(() -> {
+			
 			Application app = SpringApplication.run(Application.class, args).getBean(Application.class);
 	
 			// We have to do this after the context has been loaded to ensure all components have registered themselves
@@ -125,6 +130,7 @@ public class Application extends JFrame {
 			app.buildMenus();
 			app.setCurrentCard(RegisterReservationCard.TITLE);
 			app.setVisible(true);
+			open.dispose();
 			
 		});
 	}

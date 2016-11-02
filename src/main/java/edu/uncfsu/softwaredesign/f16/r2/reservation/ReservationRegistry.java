@@ -107,7 +107,7 @@ public class ReservationRegistry implements Reportable {
 	public void registerReservation(Reservation reserve) throws ReservationRegistryFullException {
 		
 		Optional<List<LocalDate>> conflicts = getConflicts(reserve.getReservationDate(), reserve.getDays());
-		
+		System.out.println(conflicts.orElse(Lists.newArrayList()).size());
 		if (conflicts.isPresent()) {
 			throw new ReservationRegistryFullException(reserve, conflicts.get());
 		}
@@ -151,7 +151,7 @@ public class ReservationRegistry implements Reportable {
 		List<LocalDate> conflicts = Lists.newArrayList();
 		
 		Utils.dateStream(date, days)
-			.filter(d -> getReservationsForDate(d).stream().filter(c -> c.reservationId == id).toArray().length >= MAX_ROOMS)
+			.filter(d -> getReservationsForDate(d).stream().filter(c -> c.reservationId != id).toArray().length >= MAX_ROOMS)
 			.forEach(conflicts::add);
 
 		return Optional.ofNullable(conflicts.isEmpty() ? null : conflicts);
@@ -203,6 +203,11 @@ public class ReservationRegistry implements Reportable {
 		return newCost;
 	}
 	
+	/**
+	 * Updates the entry in the registry and on the disk.
+	 * 
+	 * @param reservation
+	 */
 	public void updateReservation(Reservation reservation) {
 		reservations.put(reservation.reservationId, reservation);
 		saveToDisk();

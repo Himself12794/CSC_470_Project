@@ -1,7 +1,5 @@
 package edu.uncfsu.softwaredesign.f16.r2.components;
 
-import java.text.NumberFormat;
-
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;

@@ -63,7 +63,6 @@ public class RegisterReservationForm extends ReservationForm {
 			.setReservationDate(getReservationDate());
 		
 		try {
-			
 			builtReservation = reservationBuilder.createAndRegister(false);
 			confirmButton.setEnabled(true);
 			totalCost.setText(String.format("$%.2f", builtReservation.getTotalCost()));

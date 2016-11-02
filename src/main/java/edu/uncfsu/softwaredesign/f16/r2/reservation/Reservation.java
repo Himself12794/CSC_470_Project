@@ -28,9 +28,12 @@ public final class Reservation implements Serializable {
 
 	ReservationType theType;
 	long reservationId;
+	float totalCost;
+	int roomNumber = -1;
+	boolean hasCheckedIn = false;
+	boolean hasCheckedOut = false;
 	boolean hasPaid = false;
 	boolean canceled = false;
-	float totalCost;
 
 	Reservation(long reservationId, String customer, String email, LocalDate registrationDate,
 			LocalDate reservationDate, int days, CostRegistry costs, ReservationRegistry registry,
@@ -272,6 +275,30 @@ public final class Reservation implements Serializable {
 				+ registrationDate + ", reservationDate=" + reservationDate + ", days=" + days + ", creditCard="
 				+ creditCard + ", reservationId=" + reservationId + ", hasPaid=" + hasPaid + ", totalCost=" + totalCost
 				+ "]";
+	}
+
+	public int getRoomNumber() {
+		return roomNumber;
+	}
+
+	public void setRoomNumber(int roomNumber) {
+		this.roomNumber = roomNumber;
+	}
+
+	public boolean isHasCheckedIn() {
+		return hasCheckedIn;
+	}
+
+	public void setHasCheckedIn(boolean hasCheckedIn) {
+		this.hasCheckedIn = hasCheckedIn;
+	}
+
+	public boolean isHasCheckedOut() {
+		return hasCheckedOut;
+	}
+
+	public void setHasCheckedOut(boolean hasCheckedOut) {
+		this.hasCheckedOut = hasCheckedOut;
 	}
 	
 }
