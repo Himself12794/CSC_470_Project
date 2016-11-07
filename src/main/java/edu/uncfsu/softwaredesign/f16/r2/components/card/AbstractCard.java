@@ -33,6 +33,11 @@ public abstract class AbstractCard extends JPanel implements IApplicationCard {
 		return true;
 	}
 	
+	@Override
+	public boolean requiresElevation() {
+		return false;
+	}
+	
 	@PostConstruct
 	public final void register() {
 		cardRegistry.registerCard(this);

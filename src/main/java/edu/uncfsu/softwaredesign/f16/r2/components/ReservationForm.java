@@ -1,6 +1,7 @@
 package edu.uncfsu.softwaredesign.f16.r2.components;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.time.LocalDate;
 import java.time.Month;
@@ -10,8 +11,8 @@ import java.util.Date;
 import java.util.Optional;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -30,13 +31,13 @@ import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
-import edu.uncfsu.softwaredesign.f16.r2.GenericWorker;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationType;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationRegistryFullException;
+import edu.uncfsu.softwaredesign.f16.r2.util.State;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 
 public abstract class ReservationForm extends JPanel {
@@ -46,40 +47,50 @@ public abstract class ReservationForm extends JPanel {
 	
 	public static final String TITLE 			= "RegistrationFormPage";
 	
-	protected final JTextField nameText 				= new JTextField();
-	protected final JTextField emailText 				= new JTextField();
-	protected final JTextField cardNumber				= new JTextField();
+	protected final JTextField nameText 				= new JLimitedTextField(35, '*');
+	protected final JTextField emailText 				= new JLimitedTextField(40, '*', " ");
+	protected final JTextField phoneText				= new JPhoneTextField();
+	protected final JTextField streetText				= new JLimitedTextField(75, '*');
+	protected final JTextField cityText					= new JLimitedTextField(75, '*');
+	protected final JComboBox<State> stateText			= new JComboBox<>(State.values());
+	protected final JTextField zipcodeText				= new JLimitedTextField(5, '#');
+	
+	protected final JTextField cardNumber				= new JLimitedTextField(19, '#');
 	protected final JTextField cardName 				= new JTextField();
-	protected final JTextField cardSecurity				= new JTextField();
-	protected final JTextField totalCost				= new JTextField();
+	protected final JTextField cardSecurity				= new JLimitedTextField(3, '#');
 	protected final JMonthChooser cardMonth				= new JMonthChooser();
 	protected final JYearChooser cardYear				= new JYearChooser();
-	protected final SpinnerModel weekModel 				= new SpinnerNumberModel(1, 1, 7, 1);
+	
+	protected final SpinnerModel weekModel 				= new SpinnerNumberModel(1, 1, 14, 1);
 	protected final JSpinner weekOptions				= new JSpinner(weekModel);
-	protected final JButton checkButton					= new JButton("Check");
-	protected final JButton confirmButton				= new JButton("Confirm");
 	protected final JDateChooser dateChooser 			= new JDateChooser();
 	protected final JComboBox<ReservationType> dropDown = new JComboBox<>(ReservationType.values());
-	protected final JCheckBox isPaid					= new JCheckBox("Has Paid");
-	protected final JCheckBox isCancelled				= new JCheckBox("Is Active");
+
+	protected final JLabel totalCostLabel				= new JLabel("Total Cost");
+	protected final JTextField totalCost				= new JTextField();
+	protected final JButton checkButton					= new JButton("Check");
+	protected final JButton confirmButton				= new JButton("Confirm");
 	protected final JPanel imageHeader					= new JImagePanel("img/generic.png");
 	
 	protected final ReservationRegistry reservationRegistry;
-	protected boolean isViewing = false;
+	
+	protected boolean isViewing = true;
+	protected Reservation builtReservation = null;
 	
 	public ReservationForm(ReservationRegistry reservationRegistry) {
 		this.reservationRegistry = reservationRegistry;
+		setPreferredSize(new Dimension(800, 600));
 		buildComponent();
 	}
 
 	public void buildSubComponents() {
 
 		dropDown.addActionListener(this::doTypeValidation);
-		confirmButton.addActionListener(a -> new GenericWorker(this::doConfirm).execute());
+		confirmButton.addActionListener(a -> doConfirm());
 		confirmButton.setToolTipText("Click to register reservation");
-		checkButton.addActionListener(a -> new GenericWorker(this::doCheck).execute());
-		cardSecurity.setDocument(new JTextFieldLimit(3));
-		cardNumber.setDocument(new JTextFieldLimit(19));
+		checkButton.addActionListener(a -> doCheck());
+		cardSecurity.setDocument(new LimitedDocument(3));
+		cardNumber.setDocument(new LimitedDocument(19));
 		cardYear.setMinimum(LocalDate.now().getYear());
 		totalCost.setEnabled(false);
 		totalCost.setEditable(false);
@@ -95,7 +106,7 @@ public abstract class ReservationForm extends JPanel {
 		
 		FormLayout layout = new FormLayout(
 			    "right:pref, $lcgap, pref, 7dlu, right:pref, $lcgap, pref, 7dlu, right:pref, $lcgap, pref", 
-			    "p, 3dlu, p, $lgap, p, 9dlu, p, $lgap, p, $lgap, p, 9dlu, p, $lgap, p, $lgap, p, 9dlu, p, $lgap, p");       
+			    "p, 3dlu, p, 3dlu, p, 3dlu, p, $lgap, p, $lgap, p, 9dlu, p, $lgap, p, $lgap, p, 9dlu, p, $lgap, p");       
 
 		layout.setColumnGroups(new int[][]{ {1, 5}, {7, 11}});
 		
@@ -103,40 +114,56 @@ public abstract class ReservationForm extends JPanel {
 		CellConstraints cc = new CellConstraints();
 
 		PanelBuilder builder = new PanelBuilder(layout);
+		// Contact Info
 		builder.setDefaultDialogBorder();
-		builder.addSeparator("Contact Info", cc.xyw(1, 1, 11));
-		builder.addLabel("&Name", cc.xy(1, 3));
-		builder.add(nameText, cc.xy(3, 3));
-		builder.addLabel("&Email", cc.xy(5, 3));
-		builder.add(emailText, cc.xyw(7, 3, 5));
+		builder.addSeparator("Contact Info", 	cc.rcw(1, 1, 11));
+		
+		builder.addLabel("&Name", 				cc.rc(3, 1));
+		builder.add(			nameText,		cc.rc(3, 3));
+		builder.addLabel("&Email", 				cc.rc(3, 5));
+		builder.add(			emailText,		cc.rcw(3, 7, 5));
+		
+		builder.addLabel("Phone", 				cc.rc(5, 1));
+		builder.add(			phoneText, 		cc.rc(5, 3));
+		
+		builder.addLabel("Street", 				cc.rc(7, 1));
+		builder.add(			streetText, 	cc.rc(7, 3));
+		builder.addLabel("City", 				cc.rc(7, 5));
+		builder.add(			cityText, 		cc.rc(7, 7));
+		builder.addLabel("State", 				cc.rc(7, 9));
+		builder.add(			stateText, 		cc.rc(7, 11));
 
-		builder.addSeparator("&Resgistration", cc.xyw(1, 7, 11));
-		builder.addLabel("&Type", cc.xy (1,  9)); 
-		builder.add(dropDown, cc.xy (3,  9));
-		builder.addLabel("Reservation Date", cc.xy(5, 9));
-		builder.add(dateChooser, cc.xy(7, 9));
-		builder.addLabel("Days", cc.xy(9, 9));
-		builder.add(weekOptions, cc.xy(11, 9));
-		//builder.addLabel("Days", cc.xy(1, 11));
-		//builder.add(weekOptions, cc.xy(3, 11));
+		// Registration info
+		builder.addSeparator("&Resgistration", 	cc.rcw(9, 1, 11));
 		
-		builder.addSeparator("Payment", cc.xyw(1, 13, 11));
-		builder.addLabel("Name on Card", cc.xy(1, 15));
-		builder.add(cardName, cc.xy(3, 15));
-		builder.addLabel("Card Number", cc.xy(5, 15));
-		builder.add(cardNumber, cc.xyw(7, 15, 5));
-		builder.addLabel("Security Code", cc.xy(1, 17)).setToolTipText("3 digit code found on card back");
-		builder.add(cardSecurity, cc.xyw(3, 17, 1));
-		builder.addLabel("Month", cc.xy(5, 17));
-		builder.add(cardMonth, cc.xy(7, 17));
-		builder.addLabel("Year", cc.xy(9, 17));
-		builder.add(cardYear, cc.xy(11, 17));
+		builder.addLabel("&Type", 				cc.rc(11, 1)); 
+		builder.add(			dropDown, 		cc.rc(11, 3));
+		builder.addLabel("Reservation Date", 	cc.rc(11, 5));
+		builder.add(			dateChooser, 	cc.rc(11, 7));
+		builder.addLabel("Days", 				cc.rc(11, 9));
+		builder.add(			weekOptions, 	cc.rc(11, 11));
 		
-		builder.addSeparator("Confirmation", cc.xyw(1, 19, 11));
-		builder.addLabel("Total Cost", cc.xy(1, 21));
-		builder.add(totalCost, cc.xy(3, 21));
-		builder.add(checkButton, cc.xy(7, 21));
-		builder.add(confirmButton, cc.xy(11, 21));
+		// Payment
+		builder.addSeparator("Payment", 		cc.rcw(13, 1, 11));
+		
+		builder.addLabel("Name on Card", 		cc.rc(15, 1));
+		builder.add(			cardName, 		cc.rc(15, 3));
+		builder.addLabel("Card Number", 		cc.rc(15, 5));
+		builder.add(			cardNumber, 	cc.rcw(15, 7, 5));
+		
+		builder.addLabel("Security Code", 		cc.rc(17, 1)).setToolTipText("3 digit code found on card back");
+		builder.add(			cardSecurity, 	cc.rc(17, 3));
+		builder.addLabel("Month", 				cc.rc(17, 5));
+		builder.add(			cardMonth, 		cc.rc(17, 7));
+		builder.addLabel("Year", 				cc.rc(17, 9));
+		builder.add(			cardYear, 		cc.rc(17, 11));
+		
+		// Confirmation
+		builder.addSeparator("Confirmation", 	cc.rcw(19, 1, 11));
+		builder.add(totalCostLabel, 			cc.rc(21, 1));
+		builder.add(totalCost, 					cc.rc(21, 3));
+		builder.add(checkButton, 				cc.rc(21, 7));
+		builder.add(confirmButton, 				cc.rc(21, 11));
 		
 		add(builder.getContainer());
 	}
@@ -179,28 +206,13 @@ public abstract class ReservationForm extends JPanel {
 	 */
 	public abstract Optional<Reservation> doConfirm();
 	
-	public void setConfirmButtonEnabled(boolean value) {
-		confirmButton.setEnabled(value);
-	}
-	
 	/**
 	 * This should verify the form data.
 	 * 
 	 * @param e
 	 */
-	public abstract void doCheck();
+	public abstract boolean doCheck();
 
-	public void setCheckButtonEnabled(boolean value) {
-		checkButton.setEnabled(value);
-	}
-	
-	public void setShowModifyOptions(boolean value) {
-		
-		isPaid.setVisible(value);
-		isCancelled.setVisible(value);
-		
-	}
-	
 	public void setReservation(Reservation reservation) {
 		
 		setGuestName(reservation.getCustomer());
@@ -209,11 +221,14 @@ public abstract class ReservationForm extends JPanel {
 		setReservationType(reservation.getType());
 		setDays(reservation.getDays());
 		setReservationDate(reservation.getReservationDate());
+		totalCost.setText(String.format("$%.2f", reservation.getTotalCost()));
+		builtReservation = reservation;
+		
 		doCheck();
 	}
 	
-	public void setCardForFields(CreditCard card) {
-		if (card != null) setCardForFields(card.getNameOnCard(), card.getCardNumber(), card.getSecurityCode(), card.getExpirationDate());	
+	public void setCardForFields(Optional<CreditCard> optional) {
+		optional.ifPresent(c -> setCardForFields(c.getNameOnCard(), c.getCardNumber(), c.getSecurityCode(), c.getExpirationDate()));	
 	}
 	
 	public void setCardForFields(String name, String number, short code, YearMonth expire) {
@@ -237,7 +252,7 @@ public abstract class ReservationForm extends JPanel {
 	}
 
 	public String getGuestName() {
-		return nameText.getText();
+		return nameText.getText().trim();
 	}
 	
 	public void setGuestName(String name) {
@@ -245,7 +260,7 @@ public abstract class ReservationForm extends JPanel {
 	}
 	
 	public String getGuestEmail() {
-		return emailText.getText();
+		return emailText.getText().trim();
 	}
 	
 	public void setGuestEmail(String email) {
@@ -276,6 +291,11 @@ public abstract class ReservationForm extends JPanel {
 		dateChooser.setDate(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 	}
 	
+	/**
+	 * Uses a popup to display this message as an error.
+	 * 
+	 * @param except
+	 */
 	public void showError(ReservationException except) {
 		if (except instanceof ReservationRegistryFullException) {
 			Utils.generateErrorMessage(WordUtils.wrap(except.getMessage(), 60), "Registry Full");

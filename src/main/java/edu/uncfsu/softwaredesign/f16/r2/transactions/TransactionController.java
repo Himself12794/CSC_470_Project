@@ -12,4 +12,8 @@ public class TransactionController {
 		return true;
 	}
 	
+	public boolean charge(CreditCard card, float amount) {
+		return true;
+	}
+	
 }
