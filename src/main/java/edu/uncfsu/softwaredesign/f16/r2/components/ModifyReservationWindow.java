@@ -5,11 +5,11 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 
 import edu.uncfsu.softwaredesign.f16.r2.Application;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
+import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 
 public class ModifyReservationWindow extends JDialog {
 
@@ -39,7 +39,7 @@ public class ModifyReservationWindow extends JDialog {
 
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if (confirmDialog("close without modifying anything")) dispose();
+				if (Utils.confirmDialog(ModifyReservationWindow.this, "close without modifying anything")) dispose();
 			}
 
 		});
@@ -54,24 +54,6 @@ public class ModifyReservationWindow extends JDialog {
 	
 	public void buildLayout() {
 		add(theForm);
-	}
-	
-	public void cancel() {
-		if (confirmDialog("cancel reservation #"+ reservation.getReservationId())) {
-			JOptionPane.showMessageDialog(this, "Reservation #" + reservation.getReservationId() + " has been canceled", "Canceled", JOptionPane.INFORMATION_MESSAGE);
-			dispose();
-		}
-	}
-	
-	public boolean confirmDialog(String message) {
-
-		Object[] options = { "Yes", "No" };
-		int res = JOptionPane.showOptionDialog(this, 
-				"Are you sure you want to " + message + "?", "Confirm", 
-				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, 
-				null, options, options[1]);
-		
-		return res == 0;
 	}
 	
 }

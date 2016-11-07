@@ -151,7 +151,9 @@ public class ReservationRegistry implements Reportable {
 		List<LocalDate> conflicts = Lists.newArrayList();
 		
 		Utils.dateStream(date, days)
-			.filter(d -> getReservationsForDate(d).stream().filter(c -> c.reservationId != id).toArray().length >= MAX_ROOMS)
+			.filter(d -> getReservationsForDate(d).stream()
+					.filter(c -> c.reservationId != id 
+							&& !c.isCanceled()).toArray().length >= MAX_ROOMS)
 			.forEach(conflicts::add);
 
 		return Optional.ofNullable(conflicts.isEmpty() ? null : conflicts);
@@ -204,12 +206,19 @@ public class ReservationRegistry implements Reportable {
 	}
 	
 	/**
-	 * Updates the entry in the registry and on the disk.
+	 * Updates the entry in the registry and on the disk. If this is not called,
+	 * reservation data will not be persisted between sessions. 
+	 * 
 	 * 
 	 * @param reservation
 	 */
-	public void updateReservation(Reservation reservation) {
+	public synchronized void updateReservation(Reservation reservation) {
 		reservations.put(reservation.reservationId, reservation);
+		saveToDisk();
+	}
+	
+	public synchronized void updateReservations(Collection<Reservation> reservations) {
+		reservations.forEach(reservation -> this.reservations.put(reservation.reservationId, reservation));
 		saveToDisk();
 	}
 	

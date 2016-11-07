@@ -52,9 +52,12 @@ public class CostManagementCard extends AbstractCard {
 
 	@Override
 	public void reload() {
-		
 		dayPicker.setMinSelectableDate(Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-		
 	}
 
+	@Override
+	public boolean requiresElevation() {
+		return true;
+	}
+	
 }

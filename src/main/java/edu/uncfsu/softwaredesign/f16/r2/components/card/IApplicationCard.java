@@ -65,4 +65,6 @@ public interface IApplicationCard {
 	 * @return
 	 */
 	boolean onNavigateAway(IApplicationCard target);
+	
+	boolean requiresElevation();
 }

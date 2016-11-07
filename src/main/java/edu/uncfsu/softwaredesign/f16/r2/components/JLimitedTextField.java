@@ -32,6 +32,7 @@ public class JLimitedTextField extends JFormattedTextField {
 		try {
 			MaskFormatter mf = new MaskFormatter(Strings.repeat(String.valueOf(charType), size));
 			mf.setInvalidCharacters(invalidChars);
+			mf.setAllowsInvalid(false);
 			return mf;
 		} catch (ParseException e) {
 			return null;

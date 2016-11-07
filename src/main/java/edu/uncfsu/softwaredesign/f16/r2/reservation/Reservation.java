@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import com.google.common.collect.Range;
+
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
@@ -299,6 +301,19 @@ public final class Reservation implements Serializable {
 
 	public void setHasCheckedOut(boolean hasCheckedOut) {
 		this.hasCheckedOut = hasCheckedOut;
+		this.hasCheckedIn = !hasCheckedOut;
+	}
+	
+	public boolean isPast() {
+		return reservationDate.plusDays(days-1).isBefore(LocalDate.now());
+	}
+	
+	public boolean isFuture() {
+		return reservationDate.isAfter(LocalDate.now());
+	}
+	
+	public boolean isCurrent() {
+		return Range.closed(reservationDate, reservationDate.plusDays(days-1)).contains(LocalDate.now());
 	}
 	
 }
