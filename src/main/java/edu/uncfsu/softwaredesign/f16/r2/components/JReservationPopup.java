@@ -63,8 +63,9 @@ public class JReservationPopup extends JRightClickMenu {
 	
 	public int selectRoomNumber(Reservation reserve) {
 		
-		List<Integer> rooms = Application.getApp().getReservationRegistry().getReservations()
-				.stream().filter(r -> r.getReservationId() == reserve.getReservationId()).mapToInt(Reservation::getRoomNumber).boxed().collect(Collectors.toList());
+		List<Integer> rooms = Application.getApp().getReservationRegistry().getForReservationDate(reserve.getReservationDate())
+				.stream().filter(r -> r.getReservationId() != reserve.getReservationId()).mapToInt(Reservation::getRoomNumber)
+				.boxed().collect(Collectors.toList());
 		
 		Object[] available = IntStream.range(1, ReservationRegistry.MAX_ROOMS+1).filter(i -> !rooms.contains(i)).boxed().toArray();
 		

@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -84,6 +85,14 @@ public class ReservationRegistry implements Reportable {
 		return Lists.newArrayList(reservations.values());
 	}
 
+	public List<Reservation> getForReservationDate(LocalDate date) {
+		return getByFilter(r -> r.getReservationDate().equals(date));
+	}
+	
+	public List<Reservation> getByFilter(Predicate<Reservation> filter) {
+		return Lists.newArrayList(reservations.values()).stream().filter(filter).collect(Collectors.toList());
+	}
+	
 	@Override
 	public void writeReport(OutputStream out) {
 		

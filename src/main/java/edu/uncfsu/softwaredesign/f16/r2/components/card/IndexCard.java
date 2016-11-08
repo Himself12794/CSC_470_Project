@@ -19,6 +19,8 @@ public class IndexCard extends AbstractCard {
 
 	private static final long serialVersionUID = 8747253147759007310L;
 	
+	public static final String TITLE = "Index";
+	
 	private final JPanel buttonContent		= new JPanel(new FlowLayout(FlowLayout.CENTER));
 	private final JLabel innerHtml			= new JLabel();
 	//private final ImagePanel tacoTuesday	= new ImagePanel("img/taco_tuesday.jpg");
@@ -26,7 +28,7 @@ public class IndexCard extends AbstractCard {
 	private final JButton employeeButton	= new JButton("Login as Employee");
 	
 	public IndexCard() {
-		super("Index");
+		super(TITLE);
 	}
 
 	@Override
