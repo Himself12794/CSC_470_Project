@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,8 +241,7 @@ public class ReservationRegistry implements Reportable {
 	public class ReservationBuilder {
 		
 		private final ReservationType type;
-		private String name;
-		private String email;
+		private Customer customer;
 		private LocalDate reservationDate;
 		private LocalDate registrationDate = LocalDate.now();
 		private CreditCard card;
@@ -254,13 +254,8 @@ public class ReservationRegistry implements Reportable {
 			this.type = type;
 		}
 		
-		public ReservationBuilder setName(String name) {
-			this.name = name;
-			return this;
-		}
-		
-		public ReservationBuilder setEmail(String email) {
-			this.email = email;
+		public ReservationBuilder setCustomer(Customer name) {
+			this.customer = name;
 			return this;
 		}
 		
@@ -313,10 +308,24 @@ public class ReservationRegistry implements Reportable {
 			
 			if (reservationDate == null) {
 				errors.put("reservationDate", reservationDate);
-			} else if (name == null) {
-				errors.put("name", name);
-			} else if (email == null) {
-				errors.put("email", email);
+			}
+			
+			if (customer == null) {
+				errors.put("customer", customer);
+			} else if (customer != null) {
+				if (Strings.isNullOrEmpty(customer.getAddress())) {
+					errors.put("street", customer.getAddress());
+				} if (Strings.isNullOrEmpty(customer.getCity())) {
+					errors.put("city", customer.getCity());
+				} if (Strings.isNullOrEmpty(customer.getEmail())) {
+					errors.put("email", customer.getEmail());
+				} if (Strings.isNullOrEmpty(customer.getName())) {
+					errors.put("name", customer.getName());
+				} if (String.valueOf(customer.getPhone()).length() < 10) {
+					errors.put("phone", customer.getPhone());
+				} if (customer.getZipCode() == 0) {
+					errors.put("zipCode", customer.getZipCode());
+				}
 			}
 			
 			if (!errors.isEmpty()) {
@@ -335,7 +344,7 @@ public class ReservationRegistry implements Reportable {
 			
 			errorCheck();
 			
-			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, costRegistry, ReservationRegistry.this, type.changeFee, card, type);
+			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, customer, registrationDate, reservationDate, days, costRegistry, ReservationRegistry.this, type.changeFee, card, type);
 			
 			if (register) registerReservation(reserve);
 			

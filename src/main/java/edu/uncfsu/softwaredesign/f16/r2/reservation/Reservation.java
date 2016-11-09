@@ -21,8 +21,7 @@ public final class Reservation implements Serializable {
 
 	private static final long serialVersionUID = -2671231661896713449L;
 	
-	private String customer;
-	private String email;
+	private Customer customer;
 	private LocalDate registrationDate;
 	private LocalDate reservationDate;
 	private int days;
@@ -37,12 +36,11 @@ public final class Reservation implements Serializable {
 	boolean hasPaid = false;
 	boolean canceled = false;
 
-	Reservation(long reservationId, String customer, String email, LocalDate registrationDate,
+	Reservation(long reservationId, Customer customer, LocalDate registrationDate,
 			LocalDate reservationDate, int days, CostRegistry costs, ReservationRegistry registry,
 			float changeFeeModifier, CreditCard card, ReservationType type) {
 		this.reservationId = reservationId;
 		this.customer = customer;
-		this.email = email;
 		this.registrationDate = registrationDate;
 		this.reservationDate = reservationDate;
 		this.days = days;
@@ -50,14 +48,6 @@ public final class Reservation implements Serializable {
 		this.theType = type;
 
 		totalCost = calculateCost(reservationDate, days, costs, registry);
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
 	}
 
 	public Optional<CreditCard> getCreditCard() {
@@ -127,11 +117,11 @@ public final class Reservation implements Serializable {
 		return reservationId;
 	}
 
-	public String getCustomer() {
+	public Customer getCustomer() {
 		return customer;
 	}
 
-	public void setCustomer(String customer) {
+	public void setCustomer(Customer customer) {
 		this.customer = customer;
 	}
 
@@ -201,17 +191,17 @@ public final class Reservation implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Float.floatToIntBits(getChangeFeeModifier());
-		result = prime * result + Float.floatToIntBits(getCostModifier());
+		result = prime * result + (canceled ? 1231 : 1237);
 		result = prime * result + ((creditCard == null) ? 0 : creditCard.hashCode());
 		result = prime * result + ((customer == null) ? 0 : customer.hashCode());
 		result = prime * result + days;
-		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result + (canceled ? 1231 : 1237);
+		result = prime * result + (hasCheckedIn ? 1231 : 1237);
+		result = prime * result + (hasCheckedOut ? 1231 : 1237);
 		result = prime * result + (hasPaid ? 1231 : 1237);
 		result = prime * result + ((registrationDate == null) ? 0 : registrationDate.hashCode());
 		result = prime * result + ((reservationDate == null) ? 0 : reservationDate.hashCode());
 		result = prime * result + (int) (reservationId ^ (reservationId >>> 32));
+		result = prime * result + roomNumber;
 		result = prime * result + ((theType == null) ? 0 : theType.hashCode());
 		result = prime * result + Float.floatToIntBits(totalCost);
 		return result;
@@ -228,10 +218,6 @@ public final class Reservation implements Serializable {
 		Reservation other = (Reservation) obj;
 		if (canceled != other.canceled)
 			return false;
-		if (Float.floatToIntBits(getChangeFeeModifier()) != Float.floatToIntBits(other.getChangeFeeModifier()))
-			return false;
-		if (Float.floatToIntBits(getCostModifier()) != Float.floatToIntBits(other.getCostModifier()))
-			return false;
 		if (creditCard == null) {
 			if (other.creditCard != null)
 				return false;
@@ -244,10 +230,9 @@ public final class Reservation implements Serializable {
 			return false;
 		if (days != other.days)
 			return false;
-		if (email == null) {
-			if (other.email != null)
-				return false;
-		} else if (!email.equals(other.email))
+		if (hasCheckedIn != other.hasCheckedIn)
+			return false;
+		if (hasCheckedOut != other.hasCheckedOut)
 			return false;
 		if (hasPaid != other.hasPaid)
 			return false;
@@ -263,6 +248,8 @@ public final class Reservation implements Serializable {
 			return false;
 		if (reservationId != other.reservationId)
 			return false;
+		if (roomNumber != other.roomNumber)
+			return false;
 		if (theType != other.theType)
 			return false;
 		if (Float.floatToIntBits(totalCost) != Float.floatToIntBits(other.totalCost))
@@ -273,7 +260,7 @@ public final class Reservation implements Serializable {
 	@Override
 	public String toString() {
 		return "Reservation [canceled=" + canceled + ", changeFeeModifier=" + getChangeFeeModifier() + ", costModifier="
-				+ getCostModifier() + ", customer=" + customer + ", email=" + email + ", registrationDate="
+				+ getCostModifier() + ", customer=" + customer + ", registrationDate="
 				+ registrationDate + ", reservationDate=" + reservationDate + ", days=" + days + ", creditCard="
 				+ creditCard + ", reservationId=" + reservationId + ", hasPaid=" + hasPaid + ", totalCost=" + totalCost
 				+ "]";

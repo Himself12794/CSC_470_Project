@@ -57,8 +57,7 @@ public class RegisterReservationForm extends ReservationForm {
 		ReservationBuilder reservationBuilder = reservationRegistry.createReservationBuilder(ReservationType.values()[dropDown.getSelectedIndex()]);
 
 		reservationBuilder.setDays(getDays())
-			.setName(getGuestName())
-			.setEmail(getGuestEmail())
+			.setCustomer(getCustomer())
 			.setPayment(getCardFromFields())
 			.setReservationDate(getReservationDate());
 		

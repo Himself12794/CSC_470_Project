@@ -31,6 +31,7 @@ import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JMonthChooser;
 import com.toedter.calendar.JYearChooser;
 
+import edu.uncfsu.softwaredesign.f16.r2.reservation.Customer;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationType;
@@ -47,13 +48,20 @@ public abstract class ReservationForm extends JPanel {
 	
 	public static final String TITLE 			= "RegistrationFormPage";
 	
-	protected final JTextField nameText 				= new JLimitedTextField(35, '*');
-	protected final JTextField emailText 				= new JLimitedTextField(40, '*', " ");
+	protected final JTextField nameText 				= new JTextField(); 
+	protected final JTextField emailText 				= new JTextField(); 
 	protected final JTextField phoneText				= new JPhoneTextField();
-	protected final JTextField streetText				= new JLimitedTextField(75, '*');
-	protected final JTextField cityText					= new JLimitedTextField(75, '*');
+	protected final JTextField streetText				= new JTextField(); 
+	protected final JTextField cityText					= new JTextField(); 
 	protected final JComboBox<State> stateText			= new JComboBox<>(State.values());
 	protected final JTextField zipcodeText				= new JLimitedTextField(5, '#');
+	
+	{
+		nameText.setDocument(new LimitedDocument(35));
+		emailText.setDocument(new LimitedDocument(40));
+		streetText.setDocument(new LimitedDocument(75));
+		cityText.setDocument(new LimitedDocument(75));
+	}
 	
 	protected final JTextField cardNumber				= new JLimitedTextField(19, '#');
 	protected final JTextField cardName 				= new JTextField();
@@ -125,6 +133,8 @@ public abstract class ReservationForm extends JPanel {
 		
 		builder.addLabel("Phone", 				cc.rc(5, 1));
 		builder.add(			phoneText, 		cc.rc(5, 3));
+		builder.addLabel("Zip-Code",			cc.rc(5, 5));
+		builder.add(			zipcodeText,	cc.rc(5, 7));
 		
 		builder.addLabel("Street", 				cc.rc(7, 1));
 		builder.add(			streetText, 	cc.rc(7, 3));
@@ -215,8 +225,7 @@ public abstract class ReservationForm extends JPanel {
 
 	public void setReservation(Reservation reservation) {
 		
-		setGuestName(reservation.getCustomer());
-		setGuestEmail(reservation.getEmail());
+		setCustomer(reservation.getCustomer());
 		setCardForFields(reservation.getCreditCard());
 		setReservationType(reservation.getType());
 		setDays(reservation.getDays());
@@ -251,20 +260,31 @@ public abstract class ReservationForm extends JPanel {
 		return new CreditCard(name, number, date, code);
 	}
 
-	public String getGuestName() {
-		return nameText.getText().trim();
+	public void setCustomer(Customer customer) {
+		nameText.setText(customer.getName());
+		emailText.setText(customer.getEmail());
+		streetText.setText(customer.getAddress());
+		phoneText.setText(String.valueOf(customer.getPhone()));
+		stateText.setSelectedItem(customer.getState());
+		cityText.setText(customer.getCity());
+		zipcodeText.setText(String.valueOf(customer.getZipCode()));
 	}
 	
-	public void setGuestName(String name) {
-		nameText.setText(name);
-	}
-	
-	public String getGuestEmail() {
-		return emailText.getText().trim();
-	}
-	
-	public void setGuestEmail(String email) {
-		emailText.setText(email);
+	public Customer getCustomer() {
+		String name = nameText.getText();
+		String email = emailText.getText();
+		String address = streetText.getText();
+		String num = phoneText.getText().replaceAll("(\\(|\\)|\\s|\\-|_)", "");
+		num = Strings.isNullOrEmpty(num) ? "0" : num; 
+		long phone = Long.valueOf(num);
+		State state = (State)stateText.getSelectedItem();
+		String city = cityText.getText();
+		num = zipcodeText.getText();
+		num = Strings.isNullOrEmpty(num) ? "0" : num;
+		long zipCode = Long.valueOf(num);
+		
+		return new Customer(name, phone, email, address, zipCode, city, state);
+		
 	}
 	
 	public ReservationType getReservationType() {
