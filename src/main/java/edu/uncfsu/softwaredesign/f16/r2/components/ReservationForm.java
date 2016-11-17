@@ -46,8 +46,14 @@ public abstract class ReservationForm extends JPanel {
 	
 	private static final long serialVersionUID 	= 5652047994860330697L;
 	private static final Logger LOGGER 			= LoggerFactory.getLogger(ReservationForm.class.getSimpleName());	
-	
+
+	public static final Color DARK_GREEN;
 	public static final String TITLE 			= "RegistrationFormPage";
+	
+	static {
+		float[] vals = Color.RGBtoHSB(40, 97, 36, null);
+		DARK_GREEN = Color.getHSBColor(vals[0], vals[1], vals[2]);
+	}
 	
 	protected final JTextField nameText 				= new JTextField(); 
 	protected final JTextField emailText 				= new JTextField(); 
@@ -227,7 +233,7 @@ public abstract class ReservationForm extends JPanel {
 			return false;
 		} else {
 			availabilityErrorMsg.setText("All days are available");
-			availabilityErrorMsg.setForeground(Color.GREEN);
+			availabilityErrorMsg.setForeground(DARK_GREEN);
 			return true;
 		}
 		

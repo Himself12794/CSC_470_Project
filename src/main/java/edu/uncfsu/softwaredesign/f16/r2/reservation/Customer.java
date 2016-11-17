@@ -107,4 +107,9 @@ public class Customer implements Serializable {
 		return state;
 	}
 	
+	@Override
+	public String toString() {
+		return name;
+	}
+	
 }
