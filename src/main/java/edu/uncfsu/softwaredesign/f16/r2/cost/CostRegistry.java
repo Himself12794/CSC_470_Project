@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository;
 import com.google.common.collect.Maps;
 
 import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
+import edu.uncfsu.softwaredesign.f16.r2.util.DiskWritable;
 
 /**
  * Keeps track of room costs past, present, and future. 
@@ -29,7 +30,7 @@ import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
  *
  */
 @Repository
-public class CostRegistry implements Reportable {
+public class CostRegistry implements Reportable, DiskWritable {
 	
 	private static final long serialVersionUID = -883446370785660735L;
 	
@@ -117,7 +118,7 @@ public class CostRegistry implements Reportable {
 		return "";
 	}
 	
-	void saveToDisk() {
+	public void saveToDisk() {
 		
 		try {
 

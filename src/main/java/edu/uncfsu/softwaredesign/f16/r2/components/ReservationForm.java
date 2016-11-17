@@ -8,6 +8,7 @@ import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import javax.swing.JButton;
@@ -73,6 +74,8 @@ public abstract class ReservationForm extends JPanel {
 	protected final JSpinner weekOptions				= new JSpinner(weekModel);
 	protected final JDateChooser dateChooser 			= new JDateChooser();
 	protected final JComboBox<ReservationType> dropDown = new JComboBox<>(ReservationType.values());
+	protected final JLabel availabilityErrorMsg			= new JLabel();
+	protected final JButton checkAvailability			= new JButton("Check Availability");
 
 	protected final JLabel totalCostLabel				= new JLabel("Total Cost");
 	protected final JTextField totalCost				= new JTextField();
@@ -103,6 +106,7 @@ public abstract class ReservationForm extends JPanel {
 		totalCost.setEnabled(false);
 		totalCost.setEditable(false);
 		totalCost.setDisabledTextColor(Color.BLACK);
+		checkAvailability.addActionListener(a -> checkAvailability());
 		
 	}
 	
@@ -114,7 +118,7 @@ public abstract class ReservationForm extends JPanel {
 		
 		FormLayout layout = new FormLayout(
 			    "right:pref, $lcgap, pref, 7dlu, right:pref, $lcgap, pref, 7dlu, right:pref, $lcgap, pref", 
-			    "p, 3dlu, p, 3dlu, p, 3dlu, p, $lgap, p, $lgap, p, 9dlu, p, $lgap, p, $lgap, p, 9dlu, p, $lgap, p");       
+			    "p, 3dlu, p, 3dlu, p, 3dlu, p, $lgap, p, $lgap, p, 9dlu, p, 9dlu, p, $lgap, p, $lgap, p, 9dlu, p, $lgap, p");       
 
 		layout.setColumnGroups(new int[][]{ {1, 5}, {7, 11}});
 		
@@ -153,27 +157,30 @@ public abstract class ReservationForm extends JPanel {
 		builder.addLabel("Days", 				cc.rc(11, 9));
 		builder.add(			weekOptions, 	cc.rc(11, 11));
 		
+		builder.add(checkAvailability,			cc.rc(13, 3));
+		builder.add(availabilityErrorMsg, 		cc.rcw(13, 5, 7));
+		
 		// Payment
-		builder.addSeparator("Payment", 		cc.rcw(13, 1, 11));
+		builder.addSeparator("Payment", 		cc.rcw(15, 1, 11));
 		
-		builder.addLabel("Name on Card", 		cc.rc(15, 1));
-		builder.add(			cardName, 		cc.rc(15, 3));
-		builder.addLabel("Card Number", 		cc.rc(15, 5));
-		builder.add(			cardNumber, 	cc.rcw(15, 7, 5));
+		builder.addLabel("Name on Card", 		cc.rc(17, 1));
+		builder.add(			cardName, 		cc.rc(17, 3));
+		builder.addLabel("Card Number", 		cc.rc(17, 5));
+		builder.add(			cardNumber, 	cc.rcw(17, 7, 5));
 		
-		builder.addLabel("Security Code", 		cc.rc(17, 1)).setToolTipText("3 digit code found on card back");
-		builder.add(			cardSecurity, 	cc.rc(17, 3));
-		builder.addLabel("Month", 				cc.rc(17, 5));
-		builder.add(			cardMonth, 		cc.rc(17, 7));
-		builder.addLabel("Year", 				cc.rc(17, 9));
-		builder.add(			cardYear, 		cc.rc(17, 11));
+		builder.addLabel("Security Code", 		cc.rc(19, 1)).setToolTipText("3 digit code found on card back");
+		builder.add(			cardSecurity, 	cc.rc(19, 3));
+		builder.addLabel("Month", 				cc.rc(19, 5));
+		builder.add(			cardMonth, 		cc.rc(19, 7));
+		builder.addLabel("Year", 				cc.rc(19, 9));
+		builder.add(			cardYear, 		cc.rc(19, 11));
 		
 		// Confirmation
-		builder.addSeparator("Confirmation", 	cc.rcw(19, 1, 11));
-		builder.add(totalCostLabel, 			cc.rc(21, 1));
-		builder.add(totalCost, 					cc.rc(21, 3));
-		builder.add(checkButton, 				cc.rc(21, 7));
-		builder.add(confirmButton, 				cc.rc(21, 11));
+		builder.addSeparator("Confirmation", 	cc.rcw(21, 1, 11));
+		builder.add(totalCostLabel, 			cc.rc(23, 1));
+		builder.add(totalCost, 					cc.rc(23, 3));
+		builder.add(checkButton, 				cc.rc(23, 7));
+		builder.add(confirmButton, 				cc.rc(23, 11));
 		
 		add(builder.getContainer());
 	}
@@ -211,17 +218,34 @@ public abstract class ReservationForm extends JPanel {
 		cardSecurity.setEditable(type.isPrepaid);
 	}
 	
+	public boolean checkAvailability() {
+		Optional<List<LocalDate>> conflicts = reservationRegistry.getConflicts(builtReservation != null ? builtReservation.getReservationId() : -1L, getReservationDate(), getDays());
+		if (conflicts.isPresent()) {
+			availabilityErrorMsg.setText("There are conflicting dates");
+			availabilityErrorMsg.setForeground(Color.RED);
+			showError(new ReservationRegistryFullException(conflicts.get()));
+			return false;
+		} else {
+			availabilityErrorMsg.setText("All days are available");
+			availabilityErrorMsg.setForeground(Color.GREEN);
+			return true;
+		}
+		
+	}
+	
 	/**
 	 * This should generate a reservation from the fields.
 	 */
 	public abstract Optional<Reservation> doConfirm();
 	
 	/**
-	 * This should verify the form data.
+	 * This should verify the form data. Override <b>MUST</b> call super.doCheck()
 	 * 
 	 * @param e
 	 */
-	public abstract boolean doCheck();
+	public boolean doCheck() {
+		return checkAvailability();
+	}
 
 	public void setReservation(Reservation reservation) {
 		
@@ -278,8 +302,8 @@ public abstract class ReservationForm extends JPanel {
 		num = Strings.isNullOrEmpty(num) ? "0" : num; 
 		long phone = Long.valueOf(num);
 		State state = (State)stateText.getSelectedItem();
-		String city = cityText.getText();
-		num = zipcodeText.getText();
+		String city = cityText.getText().trim();
+		num = zipcodeText.getText().trim();
 		num = Strings.isNullOrEmpty(num) ? "0" : num;
 		long zipCode = Long.valueOf(num);
 		

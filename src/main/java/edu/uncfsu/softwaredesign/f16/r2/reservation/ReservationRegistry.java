@@ -32,6 +32,7 @@ import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.TransactionController;
+import edu.uncfsu.softwaredesign.f16.r2.util.DiskWritable;
 import edu.uncfsu.softwaredesign.f16.r2.util.InvalidReservationException;
 import edu.uncfsu.softwaredesign.f16.r2.util.NoSuchReservationTypeException;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
@@ -46,7 +47,7 @@ import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
  *
  */
 @Repository
-public class ReservationRegistry implements Reportable {
+public class ReservationRegistry implements Reportable, DiskWritable {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReservationRegistry.class.getSimpleName());
 	private static final String SAVE_LOCATION = "data/";
@@ -117,9 +118,8 @@ public class ReservationRegistry implements Reportable {
 	public void registerReservation(Reservation reserve) throws ReservationRegistryFullException {
 		
 		Optional<List<LocalDate>> conflicts = getConflicts(reserve.getReservationDate(), reserve.getDays());
-		System.out.println(conflicts.orElse(Lists.newArrayList()).size());
 		if (conflicts.isPresent()) {
-			throw new ReservationRegistryFullException(reserve, conflicts.get());
+			throw new ReservationRegistryFullException(conflicts.get());
 		}
 		
 		if (reserve.getReservationId() == -1 || reservations.containsKey(reserve.reservationId)) {
@@ -359,7 +359,7 @@ public class ReservationRegistry implements Reportable {
 		
 	}
 
-	void saveToDisk() {
+	public void saveToDisk() {
 		
 		try {
 
@@ -383,7 +383,7 @@ public class ReservationRegistry implements Reportable {
 	 */
 	@PostConstruct
 	@SuppressWarnings("unchecked")
-	void loadFromDisk() {
+	public void loadFromDisk() {
 
 		if (saveFile.exists()) {
 			try {

@@ -53,6 +53,7 @@ public class RegisterReservationForm extends ReservationForm {
 	 */
 	@Override
 	public boolean doCheck() {
+		super.doCheck();
 		
 		ReservationBuilder reservationBuilder = reservationRegistry.createReservationBuilder(ReservationType.values()[dropDown.getSelectedIndex()]);
 

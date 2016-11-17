@@ -45,6 +45,7 @@ public class ModifyReservationForm extends ReservationForm {
 
 	@Override
 	public boolean doCheck() {
+		super.checkAvailability();
 		
 		boolean canUpdate = false;
 		
@@ -60,7 +61,7 @@ public class ModifyReservationForm extends ReservationForm {
 					totalCost.setText(String.format("+$%.2f", newCost));
 					canUpdate |= true;
 				} else {
-					showError(new ReservationRegistryFullException(builtReservation, conflicts.get()));
+					showError(new ReservationRegistryFullException(conflicts.get()));
 				}
 				
 			}
