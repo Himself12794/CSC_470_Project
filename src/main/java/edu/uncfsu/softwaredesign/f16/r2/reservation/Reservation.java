@@ -35,6 +35,7 @@ public final class Reservation implements Serializable {
 	boolean hasCheckedOut = false;
 	boolean hasPaid = false;
 	boolean canceled = false;
+	float firstDayCost;
 
 	Reservation(long reservationId, Customer customer, LocalDate registrationDate,
 			LocalDate reservationDate, int days, CostRegistry costs, ReservationRegistry registry,
@@ -47,7 +48,9 @@ public final class Reservation implements Serializable {
 		this.creditCard = card;
 		this.theType = type;
 
-		totalCost = calculateCost(reservationDate, days, costs, registry);
+		float[] totals = calculateCost(reservationDate, days, costs, registry);
+		totalCost = totals[0];
+		firstDayCost = totals[1];
 	}
 
 	public Optional<CreditCard> getCreditCard() {
@@ -79,17 +82,21 @@ public final class Reservation implements Serializable {
 	 * @param registry
 	 * @return
 	 */
-	public float calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry) {
+	public float[] calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry) {
 
-		float[] total = { 0.0F };
-		Utils.dateStream(date, days).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
+		float[] total = { 0.0F, 0.0F };
+		boolean[] discountAvailable = { false };
 		if (getReservationDate().isBefore(getRegistrationDate().plusDays(30))) {
 			if (registry.averageOccupancyForRange(getRegistrationDate(), getDays()) / registry.getMaxRooms() <= 0.6F) {
-				total[0] *= 0.8F;
+				discountAvailable[0] = true;
 			}
 		}
 
-		return total[0];
+		Utils.dateStream(date, days).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier() * (discountAvailable[0] ? 0.8F : 1.0F));
+		
+		total[1] = costs.getCostForDay(date) * getCostModifier() * (discountAvailable[0] ? 0.8F : 1.0F);
+		
+		return total;
 	}
 
 	/**
@@ -105,8 +112,10 @@ public final class Reservation implements Serializable {
 
 		setReservationDate(date);
 		setDays(days);
-		newCost = calculateCost(date, days, cost, registry);
+		float[] totals = calculateCost(date, days, cost, registry);
+		newCost = totals[0];
 		setTotalCost(newCost);
+		setFirstDayCost(totals[1]);		
 		
 		newCost *= getChangeFeeModifier();
 
@@ -195,6 +204,7 @@ public final class Reservation implements Serializable {
 		result = prime * result + ((creditCard == null) ? 0 : creditCard.hashCode());
 		result = prime * result + ((customer == null) ? 0 : customer.hashCode());
 		result = prime * result + days;
+		result = prime * result + Float.floatToIntBits(firstDayCost);
 		result = prime * result + (hasCheckedIn ? 1231 : 1237);
 		result = prime * result + (hasCheckedOut ? 1231 : 1237);
 		result = prime * result + (hasPaid ? 1231 : 1237);
@@ -230,6 +240,8 @@ public final class Reservation implements Serializable {
 			return false;
 		if (days != other.days)
 			return false;
+		if (Float.floatToIntBits(firstDayCost) != Float.floatToIntBits(other.firstDayCost))
+			return false;
 		if (hasCheckedIn != other.hasCheckedIn)
 			return false;
 		if (hasCheckedOut != other.hasCheckedOut)
@@ -263,6 +275,7 @@ public final class Reservation implements Serializable {
 				+ getCostModifier() + ", customer=" + customer + ", registrationDate="
 				+ registrationDate + ", reservationDate=" + reservationDate + ", days=" + days + ", creditCard="
 				+ creditCard + ", reservationId=" + reservationId + ", hasPaid=" + hasPaid + ", totalCost=" + totalCost
+				+ ", firstDayCost=" + firstDayCost
 				+ "]";
 	}
 
@@ -301,6 +314,14 @@ public final class Reservation implements Serializable {
 	
 	public boolean isCurrent() {
 		return Range.closed(reservationDate, reservationDate.plusDays(days-1)).contains(LocalDate.now());
+	}
+
+	public float getFirstDayCost() {
+		return firstDayCost;
+	}
+
+	public void setFirstDayCost(float firstDayCost) {
+		this.firstDayCost = firstDayCost;
 	}
 	
 }

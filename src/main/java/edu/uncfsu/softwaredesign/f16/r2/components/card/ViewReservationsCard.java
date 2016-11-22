@@ -35,6 +35,7 @@ import edu.uncfsu.softwaredesign.f16.r2.components.JReservationPopup;
 import edu.uncfsu.softwaredesign.f16.r2.components.JTextFieldLimit;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.Reservation;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
+import edu.uncfsu.softwaredesign.f16.r2.transactions.TransactionController;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
 
 @Component
@@ -42,7 +43,7 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 
 	private static final long serialVersionUID = 2369089937389802912L;
 	
-	private static final Object[] TABLE_LABELS 		= new Object[] {"Id", "Customer", "Room", "Checked-In", "Checked-Out", "Reservation Date", "Days", "Total Cost", "Has Paid", "Canceled"};
+	private static final Object[] TABLE_LABELS 		= new Object[] {"Id", "Type", "Customer", "Room", "Checked-In", "Checked-Out", "Reservation Date", "Days", "Total Cost", "Has Paid", "Canceled"};
 	private static final GridBagConstraints GBC	 	= new GridBagConstraints();
 	
 	static {
@@ -71,6 +72,9 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 	
 	@Autowired
 	private Application theApp;
+	
+	@Autowired
+	private TransactionController transactionController;
 	
 	public ViewReservationsCard() {
 		super("View");
@@ -167,7 +171,7 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		
 		for (int i = 0; i < reservations.size(); i++) {
 			Reservation res = reservations.get(i);  
-			tableData[i] = new Object[]{ res.getReservationId(), res.getCustomer(), res.getRoomNumber() <= 0 ? "Not Assigned" : res.getRoomNumber(), 
+			tableData[i] = new Object[]{ res.getReservationId(), res.getType().getInitial(), res.getCustomer(), res.getRoomNumber() <= 0 ? "Not Assigned" : res.getRoomNumber(), 
 					res.isHasCheckedIn(), res.isHasCheckedOut(), res.getReservationDate(), new Integer(res.getDays()), String.format("%.2f", res.getTotalCost()), 
 					res.isHasPaid(),res.isCanceled()};
 		}
@@ -243,6 +247,10 @@ public class ViewReservationsCard extends AbstractCard implements IApplicationCa
 		builder.add(showFuture, cc.rc(6, 10));
 		
 		return builder.getPanel();
+	}
+	
+	public TransactionController getTransactionController() {
+		return transactionController;
 	}
 	
 }

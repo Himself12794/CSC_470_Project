@@ -30,6 +30,7 @@ import edu.uncfsu.softwaredesign.f16.r2.components.card.CardRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IndexCard;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.RegisterReservationCard;
+import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.util.MenuBuilder;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
@@ -57,6 +58,8 @@ public class Application extends JFrame {
 	public CardRegistry cardRegistry;
 	@Autowired
 	private ReservationRegistry reservationRegistry;
+	@Autowired
+	private CostRegistry costREgistry;
 	
 	private final JMenuBar menuBar					= new JMenuBar();
 	private final CardLayout mainLayout				= new CardLayout();
@@ -172,6 +175,10 @@ public class Application extends JFrame {
 	
 	public ReservationRegistry getReservationRegistry() {
 		return reservationRegistry;
+	}
+	
+	public CostRegistry getCostRegistry() {
+		return costREgistry;
 	}
 	
 	public static Application getApp() {

@@ -6,7 +6,7 @@ public enum ReservationType implements Serializable {
 
 	PRE_PAID("Pre-paid", 1.1F, 0.75F, 90, true),
 	DAYS_ADVANCED_60("60 Days Advanced", 1.1F, 0.85F, 60, false),
-	CONVENTIONAL("Conventional", 1.0F, 1.0F, 1, true);
+	CONVENTIONAL("Conventional", 1.0F, 1.0F, 1, false);
 	
 	public final String typeName;
 	public final float changeFee;
@@ -31,6 +31,19 @@ public enum ReservationType implements Serializable {
 		}
 		
 		return null;
+	}
+	
+	public String getInitial() {
+		switch (this) {
+		case CONVENTIONAL:
+			return "C";
+		case DAYS_ADVANCED_60:
+			return "A";
+		case PRE_PAID:
+			return "P";
+		default:
+			return "";
+		}
 	}
 	
 	public String toString() {

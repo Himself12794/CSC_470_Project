@@ -202,7 +202,7 @@ public class ReservationRegistry implements Reportable, DiskWritable {
 	 */
 	public float calculateChangeFee(Reservation reservation, LocalDate date, int days, boolean update) {
 		
-		float newCost = reservation.calculateCost(date, days, costRegistry, this);
+		float newCost = reservation.calculateCost(date, days, costRegistry, this)[0];
 		newCost *= reservation.theType.changeFee;
 		
 		if (update) {
