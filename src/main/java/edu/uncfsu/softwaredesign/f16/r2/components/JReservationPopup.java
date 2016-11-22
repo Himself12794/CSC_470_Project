@@ -1,5 +1,6 @@
 package edu.uncfsu.softwaredesign.f16.r2.components;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -131,7 +132,9 @@ public class JReservationPopup extends JRightClickMenu {
 		
 		if (!reservations.isEmpty() && Utils.confirmDialog(Application.getApp(), preface + message)) {
 			reservations.forEach(r -> {
-				if (r.getType() == ReservationType.CONVENTIONAL) chargeNoShow(r, ((ViewReservationsCard) parent).getTransactionController(), parent);
+				if (r.getType() == ReservationType.CONVENTIONAL && LocalDate.now().minusDays(3).isBefore(r.getReservationDate())) {
+					chargeNoShow(r, ((ViewReservationsCard) parent).getTransactionController(), parent);
+				}
 				r.setCanceled(true);
 			});
 			Application.getApp().getReservationRegistry().updateReservations(reservations);
