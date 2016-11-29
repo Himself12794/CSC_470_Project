@@ -2,8 +2,10 @@ package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
@@ -26,6 +28,7 @@ public final class Reservation implements Serializable {
 	private LocalDate reservationDate;
 	private int days;
 	private CreditCard creditCard;
+	private Map<LocalDate, Float> costs = Maps.newHashMap(); 
 
 	ReservationType theType;
 	long reservationId;
@@ -48,7 +51,8 @@ public final class Reservation implements Serializable {
 		this.creditCard = card;
 		this.theType = type;
 
-		float[] totals = calculateCost(reservationDate, days, costs, registry);
+		float[] totals = calculateCost(reservationDate, days, costs, registry, true);
+		
 		totalCost = totals[0];
 		firstDayCost = totals[1];
 	}
@@ -82,7 +86,7 @@ public final class Reservation implements Serializable {
 	 * @param registry
 	 * @return
 	 */
-	public float[] calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry) {
+	private float[] calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry, boolean saveToMap) {
 
 		float[] total = { 0.0F, 0.0F };
 		boolean[] discountAvailable = { false };
@@ -92,11 +96,30 @@ public final class Reservation implements Serializable {
 			}
 		}
 
-		Utils.dateStream(date, days).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier() * (discountAvailable[0] ? 0.8F : 1.0F));
+		Utils.dateStream(date, days).forEach(d -> {
+			float cost = costs.getCostForDay(d) * getCostModifier() * (discountAvailable[0] ? 0.8F : 1.0F);
+			total[0] += cost;
+			if (saveToMap) this.costs.put(d, cost);
+		});
 		
 		total[1] = costs.getCostForDay(date) * getCostModifier() * (discountAvailable[0] ? 0.8F : 1.0F);
 		
 		return total;
+	}
+	
+	public Map<LocalDate, Float> getValuesMap() {
+		return Maps.newHashMap(costs);
+	}
+	
+	/**
+	 * Computes the cost for the current values, but does not update it.
+	 * 
+	 * @param costs
+	 * @param registry
+	 * @return
+	 */
+	public float[] calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry) {
+		return calculateCost(date, days, costs, registry, false);
 	}
 
 	/**

@@ -136,6 +136,82 @@ public class ReservationRegistry implements Reportable, DiskWritable {
 		saveToDisk();
 	}
 	
+	public String generateExpectedOccuppancyReport() {
+		
+		StringBuilder output = new StringBuilder();
+		long[] totalTotal = {0L};
+		Utils.dateStream(LocalDate.now(), 30).forEach(d -> {
+			long cCount = getReservationsForDate(d).stream().filter(r -> r.getType() == ReservationType.CONVENTIONAL).count();
+			long pCount = getReservationsForDate(d).stream().filter(r -> r.getType() == ReservationType.PRE_PAID).count();
+			long aCount = getReservationsForDate(d).stream().filter(r -> r.getType() == ReservationType.DAYS_ADVANCED_60).count();
+			
+			long total = cCount + pCount + aCount;
+			
+			output.append(String.format("For date: %s, Pre-Paid: %d, Conventional: %d, 60-Days: %d, Total Reservations: %d" , 
+					d.toString(), pCount, cCount, aCount, total)).append("\n");
+			
+			totalTotal[0] += total;
+		});
+		
+		output.append("Average expected occupancy: ").append(totalTotal[0]);
+		
+		return output.toString();		
+	}
+	
+	public String expectedRoomIncomeReport() {
+		
+		StringBuilder output = new StringBuilder();
+		float[] totalTotal = {0L};
+		Utils.dateStream(LocalDate.now(), 30).forEach(d -> {
+			
+			float totalIncome = (float) getReservationsForDate(d).stream().mapToDouble(r -> r.getValuesMap().get(d)).sum();
+			
+			output.append(String.format("For date: %s, Income: %0.2f",	d.toString(), totalIncome)).append("\n");
+			
+			totalTotal[0] += totalIncome;
+		});
+		
+		output.append("Total Income for Range: ").append(totalTotal[0]).append("\n");
+		output.append("Average Income per Day: ").append(totalTotal[0]/30).append("\n");
+		
+		return output.toString();		
+	}
+	
+	public String getDailyArrivalReport() {
+		List<Reservation> reserves = getReservationsForDate(LocalDate.now()).stream()
+				.filter(r -> r.getReservationDate().equals(LocalDate.now()))
+				.collect(Collectors.toList());
+		
+		reserves.sort((r1,r2) -> r1.getCustomer().getName().compareToIgnoreCase(r2.getCustomer().getName()));
+		
+		StringBuilder output = new StringBuilder();
+		
+		reserves.forEach(r -> {
+			output.append(String.format("Guest Name: %s, Room #: %d, Reservation Type: %s, Departure Date: %s", 
+					r.getCustomer().getName(), r.getRoomNumber(), r.getType(), r.getReservationDate().plusDays(r.getDays()-1)));
+		});
+		
+		return output.toString();
+	}
+	
+	public String getDailyOccupancylReport() {
+		List<Reservation> reserves = getReservationsForDate(LocalDate.now()).stream().filter(r -> r.hasCheckedIn && !r.hasCheckedOut).collect(Collectors.toList());
+		
+		reserves.sort((r1,r2) -> r1.getCustomer().getName().compareToIgnoreCase(r2.getCustomer().getName()));
+		
+		StringBuilder output = new StringBuilder();
+		
+		reserves.forEach(r -> {
+			if (r.getReservationDate().plusDays(r.getDays()-1).equals(LocalDate.now())) {
+				output.append("*");
+			}
+			output.append(String.format("Guest Name: %s, Room #: %d, Reservation Type: %s, Departure Date: %s", 
+					r.getCustomer().getName(), r.getRoomNumber(), r.getType(), r.getReservationDate().plusDays(r.getDays()-1)));
+		});
+		
+		return output.toString();
+	}
+	
 	/**
 	 * Checks if the reservation can be inserted into the registry.
 	 * 
