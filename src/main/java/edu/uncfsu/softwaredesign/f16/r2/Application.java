@@ -28,7 +28,9 @@ import edu.uncfsu.softwaredesign.f16.r2.components.JImagePanel;
 import edu.uncfsu.softwaredesign.f16.r2.components.OpeningImage;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.CardRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.IApplicationCard;
+import edu.uncfsu.softwaredesign.f16.r2.components.card.IndexCard;
 import edu.uncfsu.softwaredesign.f16.r2.components.card.RegisterReservationCard;
+import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reservation.ReservationRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.util.MenuBuilder;
 import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
@@ -56,6 +58,8 @@ public class Application extends JFrame {
 	public CardRegistry cardRegistry;
 	@Autowired
 	private ReservationRegistry reservationRegistry;
+	@Autowired
+	private CostRegistry costREgistry;
 	
 	private final JMenuBar menuBar					= new JMenuBar();
 	private final CardLayout mainLayout				= new CardLayout();
@@ -74,7 +78,6 @@ public class Application extends JFrame {
 		setIconImage(new JImagePanel("img/icon.png").getImage());
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//setResizable(false);
 		THE_APP = this;
 	}
 
@@ -88,7 +91,11 @@ public class Application extends JFrame {
 		
 		cardRegistry.forEach(c -> c.buildMenu(builder, this));
 		
-		builder.addMenu("File").addMenuItem(logIn).addItemAction(a -> elevate());
+		builder.addMenu("File").addMenuItem(logIn).addItemAction(a -> {
+			if (!isElevated) elevate();
+			else deElevate();
+		});
+		
 		builder.addMenu("File").addMenuItem("Close").addItemAction(l -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
 			
 		setJMenuBar(builder.build());
@@ -141,8 +148,7 @@ public class Application extends JFrame {
 			}
 		}
 		
-		logIn.setEnabled(!isElevated);
-		
+		logIn.setText("Logout");
 		/*StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
 		String encryptedPassword = passwordEncryptor.encryptPassword(userPassword);
 		
@@ -155,12 +161,24 @@ public class Application extends JFrame {
 		return isElevated;
 	}
 	
+	public void deElevate() {
+		isElevated = false;
+		logIn.setText("Login");
+		if (currentCard != null && currentCard.requiresElevation()) {
+			setCurrentCard(IndexCard.TITLE);
+		}
+	}
+	
 	public boolean isElevated() {
 		return isElevated;
 	}
 	
 	public ReservationRegistry getReservationRegistry() {
 		return reservationRegistry;
+	}
+	
+	public CostRegistry getCostRegistry() {
+		return costREgistry;
 	}
 	
 	public static Application getApp() {

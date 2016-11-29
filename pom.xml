@@ -89,12 +89,6 @@
     		<artifactId>slf4j-api</artifactId>
     		<version>1.7.21</version><!--$NO-MVN-MAN-VER$-->
 		</dependency>
-
-		<!-- dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-all</artifactId>
-			<version>5.13.4</version>
-		</dependency-->
 	</dependencies>
 
 	<build>

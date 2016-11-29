@@ -32,8 +32,7 @@ public class ModifyReservationForm extends ReservationForm {
 		if (doCheck()) {
 			
 			builtReservation.setCreditCard(getCardFromFields());
-			builtReservation.setCustomer(getGuestName());
-			builtReservation.setEmail(getGuestEmail());
+			builtReservation.setCustomer(getCustomer());
 			
 			reservationRegistry.calculateChangeFee(builtReservation, getReservationDate(), getDays(), true);
 			reservationRegistry.updateReservation(builtReservation);
@@ -46,6 +45,7 @@ public class ModifyReservationForm extends ReservationForm {
 
 	@Override
 	public boolean doCheck() {
+		super.checkAvailability();
 		
 		boolean canUpdate = false;
 		
@@ -61,13 +61,12 @@ public class ModifyReservationForm extends ReservationForm {
 					totalCost.setText(String.format("+$%.2f", newCost));
 					canUpdate |= true;
 				} else {
-					showError(new ReservationRegistryFullException(builtReservation, conflicts.get()));
+					showError(new ReservationRegistryFullException(conflicts.get()));
 				}
 				
 			}
 			
-			canUpdate |= !getGuestName().equals(builtReservation.getCustomer()) 
-					  || !getGuestEmail().equals(builtReservation.getEmail())
+			canUpdate |= !getCustomer().equals(builtReservation.getCustomer()) 
 					  || !getCardFromFields().equals(builtReservation.getCreditCard());
 			
 		}

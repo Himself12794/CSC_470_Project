@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
@@ -30,6 +32,7 @@ import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.reporting.Reportable;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.TransactionController;
+import edu.uncfsu.softwaredesign.f16.r2.util.DiskWritable;
 import edu.uncfsu.softwaredesign.f16.r2.util.InvalidReservationException;
 import edu.uncfsu.softwaredesign.f16.r2.util.NoSuchReservationTypeException;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
@@ -44,7 +47,7 @@ import edu.uncfsu.softwaredesign.f16.r2.util.Utils;
  *
  */
 @Repository
-public class ReservationRegistry implements Reportable {
+public class ReservationRegistry implements Reportable, DiskWritable {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReservationRegistry.class.getSimpleName());
 	private static final String SAVE_LOCATION = "data/";
@@ -84,6 +87,14 @@ public class ReservationRegistry implements Reportable {
 		return Lists.newArrayList(reservations.values());
 	}
 
+	public List<Reservation> getForReservationDate(LocalDate date) {
+		return getByFilter(r -> r.getReservationDate().equals(date));
+	}
+	
+	public List<Reservation> getByFilter(Predicate<Reservation> filter) {
+		return Lists.newArrayList(reservations.values()).stream().filter(filter).collect(Collectors.toList());
+	}
+	
 	@Override
 	public void writeReport(OutputStream out) {
 		
@@ -107,9 +118,8 @@ public class ReservationRegistry implements Reportable {
 	public void registerReservation(Reservation reserve) throws ReservationRegistryFullException {
 		
 		Optional<List<LocalDate>> conflicts = getConflicts(reserve.getReservationDate(), reserve.getDays());
-		System.out.println(conflicts.orElse(Lists.newArrayList()).size());
 		if (conflicts.isPresent()) {
-			throw new ReservationRegistryFullException(reserve, conflicts.get());
+			throw new ReservationRegistryFullException(conflicts.get());
 		}
 		
 		if (reserve.getReservationId() == -1 || reservations.containsKey(reserve.reservationId)) {
@@ -124,6 +134,82 @@ public class ReservationRegistry implements Reportable {
 		
 		LOGGER.info("Registered reservation with id {}", reserve.reservationId);
 		saveToDisk();
+	}
+	
+	public String generateExpectedOccuppancyReport() {
+		
+		StringBuilder output = new StringBuilder();
+		long[] totalTotal = {0L};
+		Utils.dateStream(LocalDate.now(), 30).forEach(d -> {
+			long cCount = getReservationsForDate(d).stream().filter(r -> r.getType() == ReservationType.CONVENTIONAL).count();
+			long pCount = getReservationsForDate(d).stream().filter(r -> r.getType() == ReservationType.PRE_PAID).count();
+			long aCount = getReservationsForDate(d).stream().filter(r -> r.getType() == ReservationType.DAYS_ADVANCED_60).count();
+			
+			long total = cCount + pCount + aCount;
+			
+			output.append(String.format("For date: %s, Pre-Paid: %d, Conventional: %d, 60-Days: %d, Total Reservations: %d" , 
+					d.toString(), pCount, cCount, aCount, total)).append("\n");
+			
+			totalTotal[0] += total;
+		});
+		
+		output.append("Average expected occupancy: ").append(totalTotal[0]);
+		
+		return output.toString();		
+	}
+	
+	public String expectedRoomIncomeReport() {
+		
+		StringBuilder output = new StringBuilder();
+		float[] totalTotal = {0L};
+		Utils.dateStream(LocalDate.now(), 30).forEach(d -> {
+			
+			float totalIncome = (float) getReservationsForDate(d).stream().mapToDouble(r -> r.getValuesMap().get(d)).sum();
+			
+			output.append(String.format("For date: %s, Income: %0.2f",	d.toString(), totalIncome)).append("\n");
+			
+			totalTotal[0] += totalIncome;
+		});
+		
+		output.append("Total Income for Range: ").append(totalTotal[0]).append("\n");
+		output.append("Average Income per Day: ").append(totalTotal[0]/30).append("\n");
+		
+		return output.toString();		
+	}
+	
+	public String getDailyArrivalReport() {
+		List<Reservation> reserves = getReservationsForDate(LocalDate.now()).stream()
+				.filter(r -> r.getReservationDate().equals(LocalDate.now()))
+				.collect(Collectors.toList());
+		
+		reserves.sort((r1,r2) -> r1.getCustomer().getName().compareToIgnoreCase(r2.getCustomer().getName()));
+		
+		StringBuilder output = new StringBuilder();
+		
+		reserves.forEach(r -> {
+			output.append(String.format("Guest Name: %s, Room #: %d, Reservation Type: %s, Departure Date: %s", 
+					r.getCustomer().getName(), r.getRoomNumber(), r.getType(), r.getReservationDate().plusDays(r.getDays()-1)));
+		});
+		
+		return output.toString();
+	}
+	
+	public String getDailyOccupancylReport() {
+		List<Reservation> reserves = getReservationsForDate(LocalDate.now()).stream().filter(r -> r.hasCheckedIn && !r.hasCheckedOut).collect(Collectors.toList());
+		
+		reserves.sort((r1,r2) -> r1.getCustomer().getName().compareToIgnoreCase(r2.getCustomer().getName()));
+		
+		StringBuilder output = new StringBuilder();
+		
+		reserves.forEach(r -> {
+			if (r.getReservationDate().plusDays(r.getDays()-1).equals(LocalDate.now())) {
+				output.append("*");
+			}
+			output.append(String.format("Guest Name: %s, Room #: %d, Reservation Type: %s, Departure Date: %s", 
+					r.getCustomer().getName(), r.getRoomNumber(), r.getType(), r.getReservationDate().plusDays(r.getDays()-1)));
+		});
+		
+		return output.toString();
 	}
 	
 	/**
@@ -192,7 +278,7 @@ public class ReservationRegistry implements Reportable {
 	 */
 	public float calculateChangeFee(Reservation reservation, LocalDate date, int days, boolean update) {
 		
-		float newCost = reservation.calculateCost(date, days, costRegistry, this);
+		float newCost = reservation.calculateCost(date, days, costRegistry, this)[0];
 		newCost *= reservation.theType.changeFee;
 		
 		if (update) {
@@ -231,8 +317,7 @@ public class ReservationRegistry implements Reportable {
 	public class ReservationBuilder {
 		
 		private final ReservationType type;
-		private String name;
-		private String email;
+		private Customer customer;
 		private LocalDate reservationDate;
 		private LocalDate registrationDate = LocalDate.now();
 		private CreditCard card;
@@ -245,13 +330,8 @@ public class ReservationRegistry implements Reportable {
 			this.type = type;
 		}
 		
-		public ReservationBuilder setName(String name) {
-			this.name = name;
-			return this;
-		}
-		
-		public ReservationBuilder setEmail(String email) {
-			this.email = email;
+		public ReservationBuilder setCustomer(Customer name) {
+			this.customer = name;
 			return this;
 		}
 		
@@ -304,10 +384,24 @@ public class ReservationRegistry implements Reportable {
 			
 			if (reservationDate == null) {
 				errors.put("reservationDate", reservationDate);
-			} else if (name == null) {
-				errors.put("name", name);
-			} else if (email == null) {
-				errors.put("email", email);
+			}
+			
+			if (customer == null) {
+				errors.put("customer", customer);
+			} else if (customer != null) {
+				if (Strings.isNullOrEmpty(customer.getAddress())) {
+					errors.put("street", customer.getAddress());
+				} if (Strings.isNullOrEmpty(customer.getCity())) {
+					errors.put("city", customer.getCity());
+				} if (Strings.isNullOrEmpty(customer.getEmail())) {
+					errors.put("email", customer.getEmail());
+				} if (Strings.isNullOrEmpty(customer.getName())) {
+					errors.put("name", customer.getName());
+				} if (String.valueOf(customer.getPhone()).length() < 10) {
+					errors.put("phone", customer.getPhone());
+				} if (customer.getZipCode() == 0) {
+					errors.put("zipCode", customer.getZipCode());
+				}
 			}
 			
 			if (!errors.isEmpty()) {
@@ -326,7 +420,7 @@ public class ReservationRegistry implements Reportable {
 			
 			errorCheck();
 			
-			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, name, email, registrationDate, reservationDate, days, costRegistry, ReservationRegistry.this, type.changeFee, card, type);
+			Reservation reserve = new Reservation(register ? getNextFreeId() : -1, customer, registrationDate, reservationDate, days, costRegistry, ReservationRegistry.this, type.changeFee, card, type);
 			
 			if (register) registerReservation(reserve);
 			
@@ -341,7 +435,7 @@ public class ReservationRegistry implements Reportable {
 		
 	}
 
-	void saveToDisk() {
+	public void saveToDisk() {
 		
 		try {
 
@@ -365,7 +459,7 @@ public class ReservationRegistry implements Reportable {
 	 */
 	@PostConstruct
 	@SuppressWarnings("unchecked")
-	void loadFromDisk() {
+	public void loadFromDisk() {
 
 		if (saveFile.exists()) {
 			try {

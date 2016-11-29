@@ -13,6 +13,7 @@ import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.CreditCard;
 import edu.uncfsu.softwaredesign.f16.r2.transactions.TransactionController;
 import edu.uncfsu.softwaredesign.f16.r2.util.ReservationException;
+import edu.uncfsu.softwaredesign.f16.r2.util.State;
 
 public class TestReservationRegistry {
 	
@@ -22,7 +23,7 @@ public class TestReservationRegistry {
 	@Test
 	public void testReadWrite() throws ReservationException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		
-		CostRegistry costs = new CostRegistry();
+		CostRegistry costs = new CostRegistry(new File("data/cost-registry-test.dat"));
 		TransactionController trans = new TransactionController();
 		
 		ReservationRegistry registry = new ReservationRegistry(SAVE_FILE);
@@ -37,7 +38,7 @@ public class TestReservationRegistry {
 		registry.reservations.clear();
 		
 		Reservation reserve = registry.createReservationBuilder(ReservationType.CONVENTIONAL)
-			.setDays(1).setName("Bob").setEmail("sfsdf")
+			.setDays(1).setCustomer(new Customer("bob", 7316457854L, "sdasda", "adfasdfasdf", 38375, "booful", State.AK))
 			.setPayment(new CreditCard("bob", "3123412341", YearMonth.now(), (short)123))
 			.setReservationDate(LocalDate.now().plusDays(2))
 			.createAndRegister(false);

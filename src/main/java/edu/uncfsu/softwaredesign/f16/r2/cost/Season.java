@@ -1,12 +1,13 @@
 package edu.uncfsu.softwaredesign.f16.r2.cost;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.MonthDay;
 
 import com.google.common.collect.Range;
 
-public enum Season {
+public enum Season implements Serializable {
 	SPRING(Range.closedOpen(MonthDay.of(Month.MARCH, 20), MonthDay.of(Month.JUNE, 21))),
 	SUMMER(Range.closedOpen(MonthDay.of(Month.JUNE, 21), MonthDay.of(Month.SEPTEMBER, 22))), 
 	FALL(Range.closedOpen(MonthDay.of(Month.SEPTEMBER, 22), MonthDay.of(Month.DECEMBER, 21))), 

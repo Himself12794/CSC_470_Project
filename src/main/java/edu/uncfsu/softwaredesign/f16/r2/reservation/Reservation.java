@@ -2,8 +2,10 @@ package edu.uncfsu.softwaredesign.f16.r2.reservation;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 
 import edu.uncfsu.softwaredesign.f16.r2.cost.CostRegistry;
@@ -21,12 +23,12 @@ public final class Reservation implements Serializable {
 
 	private static final long serialVersionUID = -2671231661896713449L;
 	
-	private String customer;
-	private String email;
+	private Customer customer;
 	private LocalDate registrationDate;
 	private LocalDate reservationDate;
 	private int days;
 	private CreditCard creditCard;
+	private Map<LocalDate, Float> costs = Maps.newHashMap(); 
 
 	ReservationType theType;
 	long reservationId;
@@ -36,28 +38,23 @@ public final class Reservation implements Serializable {
 	boolean hasCheckedOut = false;
 	boolean hasPaid = false;
 	boolean canceled = false;
+	float firstDayCost;
 
-	Reservation(long reservationId, String customer, String email, LocalDate registrationDate,
+	Reservation(long reservationId, Customer customer, LocalDate registrationDate,
 			LocalDate reservationDate, int days, CostRegistry costs, ReservationRegistry registry,
 			float changeFeeModifier, CreditCard card, ReservationType type) {
 		this.reservationId = reservationId;
 		this.customer = customer;
-		this.email = email;
 		this.registrationDate = registrationDate;
 		this.reservationDate = reservationDate;
 		this.days = days;
 		this.creditCard = card;
 		this.theType = type;
 
-		totalCost = calculateCost(reservationDate, days, costs, registry);
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
+		float[] totals = calculateCost(reservationDate, days, costs, registry, true);
+		
+		totalCost = totals[0];
+		firstDayCost = totals[1];
 	}
 
 	public Optional<CreditCard> getCreditCard() {
@@ -89,17 +86,40 @@ public final class Reservation implements Serializable {
 	 * @param registry
 	 * @return
 	 */
-	public float calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry) {
+	private float[] calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry, boolean saveToMap) {
 
-		float[] total = { 0.0F };
-		Utils.dateStream(date, days).forEach(d -> total[0] += costs.getCostForDay(d) * getCostModifier());
+		float[] total = { 0.0F, 0.0F };
+		boolean[] discountAvailable = { false };
 		if (getReservationDate().isBefore(getRegistrationDate().plusDays(30))) {
 			if (registry.averageOccupancyForRange(getRegistrationDate(), getDays()) / registry.getMaxRooms() <= 0.6F) {
-				total[0] *= 0.8F;
+				discountAvailable[0] = true;
 			}
 		}
 
-		return total[0];
+		Utils.dateStream(date, days).forEach(d -> {
+			float cost = costs.getCostForDay(d) * getCostModifier() * (discountAvailable[0] ? 0.8F : 1.0F);
+			total[0] += cost;
+			if (saveToMap) this.costs.put(d, cost);
+		});
+		
+		total[1] = costs.getCostForDay(date) * getCostModifier() * (discountAvailable[0] ? 0.8F : 1.0F);
+		
+		return total;
+	}
+	
+	public Map<LocalDate, Float> getValuesMap() {
+		return Maps.newHashMap(costs);
+	}
+	
+	/**
+	 * Computes the cost for the current values, but does not update it.
+	 * 
+	 * @param costs
+	 * @param registry
+	 * @return
+	 */
+	public float[] calculateCost(LocalDate date, int days, CostRegistry costs, ReservationRegistry registry) {
+		return calculateCost(date, days, costs, registry, false);
 	}
 
 	/**
@@ -115,8 +135,10 @@ public final class Reservation implements Serializable {
 
 		setReservationDate(date);
 		setDays(days);
-		newCost = calculateCost(date, days, cost, registry);
+		float[] totals = calculateCost(date, days, cost, registry);
+		newCost = totals[0];
 		setTotalCost(newCost);
+		setFirstDayCost(totals[1]);		
 		
 		newCost *= getChangeFeeModifier();
 
@@ -127,11 +149,11 @@ public final class Reservation implements Serializable {
 		return reservationId;
 	}
 
-	public String getCustomer() {
+	public Customer getCustomer() {
 		return customer;
 	}
 
-	public void setCustomer(String customer) {
+	public void setCustomer(Customer customer) {
 		this.customer = customer;
 	}
 
@@ -201,17 +223,18 @@ public final class Reservation implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Float.floatToIntBits(getChangeFeeModifier());
-		result = prime * result + Float.floatToIntBits(getCostModifier());
+		result = prime * result + (canceled ? 1231 : 1237);
 		result = prime * result + ((creditCard == null) ? 0 : creditCard.hashCode());
 		result = prime * result + ((customer == null) ? 0 : customer.hashCode());
 		result = prime * result + days;
-		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result + (canceled ? 1231 : 1237);
+		result = prime * result + Float.floatToIntBits(firstDayCost);
+		result = prime * result + (hasCheckedIn ? 1231 : 1237);
+		result = prime * result + (hasCheckedOut ? 1231 : 1237);
 		result = prime * result + (hasPaid ? 1231 : 1237);
 		result = prime * result + ((registrationDate == null) ? 0 : registrationDate.hashCode());
 		result = prime * result + ((reservationDate == null) ? 0 : reservationDate.hashCode());
 		result = prime * result + (int) (reservationId ^ (reservationId >>> 32));
+		result = prime * result + roomNumber;
 		result = prime * result + ((theType == null) ? 0 : theType.hashCode());
 		result = prime * result + Float.floatToIntBits(totalCost);
 		return result;
@@ -228,10 +251,6 @@ public final class Reservation implements Serializable {
 		Reservation other = (Reservation) obj;
 		if (canceled != other.canceled)
 			return false;
-		if (Float.floatToIntBits(getChangeFeeModifier()) != Float.floatToIntBits(other.getChangeFeeModifier()))
-			return false;
-		if (Float.floatToIntBits(getCostModifier()) != Float.floatToIntBits(other.getCostModifier()))
-			return false;
 		if (creditCard == null) {
 			if (other.creditCard != null)
 				return false;
@@ -244,10 +263,11 @@ public final class Reservation implements Serializable {
 			return false;
 		if (days != other.days)
 			return false;
-		if (email == null) {
-			if (other.email != null)
-				return false;
-		} else if (!email.equals(other.email))
+		if (Float.floatToIntBits(firstDayCost) != Float.floatToIntBits(other.firstDayCost))
+			return false;
+		if (hasCheckedIn != other.hasCheckedIn)
+			return false;
+		if (hasCheckedOut != other.hasCheckedOut)
 			return false;
 		if (hasPaid != other.hasPaid)
 			return false;
@@ -263,6 +283,8 @@ public final class Reservation implements Serializable {
 			return false;
 		if (reservationId != other.reservationId)
 			return false;
+		if (roomNumber != other.roomNumber)
+			return false;
 		if (theType != other.theType)
 			return false;
 		if (Float.floatToIntBits(totalCost) != Float.floatToIntBits(other.totalCost))
@@ -273,9 +295,10 @@ public final class Reservation implements Serializable {
 	@Override
 	public String toString() {
 		return "Reservation [canceled=" + canceled + ", changeFeeModifier=" + getChangeFeeModifier() + ", costModifier="
-				+ getCostModifier() + ", customer=" + customer + ", email=" + email + ", registrationDate="
+				+ getCostModifier() + ", customer=" + customer + ", registrationDate="
 				+ registrationDate + ", reservationDate=" + reservationDate + ", days=" + days + ", creditCard="
 				+ creditCard + ", reservationId=" + reservationId + ", hasPaid=" + hasPaid + ", totalCost=" + totalCost
+				+ ", firstDayCost=" + firstDayCost
 				+ "]";
 	}
 
@@ -314,6 +337,14 @@ public final class Reservation implements Serializable {
 	
 	public boolean isCurrent() {
 		return Range.closed(reservationDate, reservationDate.plusDays(days-1)).contains(LocalDate.now());
+	}
+
+	public float getFirstDayCost() {
+		return firstDayCost;
+	}
+
+	public void setFirstDayCost(float firstDayCost) {
+		this.firstDayCost = firstDayCost;
 	}
 	
 }
